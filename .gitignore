@@ -1,0 +1,7 @@
+# Ambiente virtual
+venv/
+*.pyc
+__pycache__/
+
+# Variáveis sensíveis
+.env
