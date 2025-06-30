@@ -5,3 +5,6 @@ __pycache__/
 
 # Variáveis sensíveis
 .env
+
+# Compose para teste local
+compose.yaml
