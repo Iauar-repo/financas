@@ -5,6 +5,9 @@ import { HelloWave } from '@/components/HelloWave';
 import ParallaxScrollView from '@/components/ParallaxScrollView';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
+const response = await fetch("http://localhost:5000/api/ping");
+const json = await response.json();
+console.log(json.message);  // deve exibir "pong"
 
 export default function HomeScreen() {
   return (

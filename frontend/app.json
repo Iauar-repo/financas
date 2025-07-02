@@ -1,11 +1,14 @@
+const response = await fetch("http://localhost:5000/api/ping");
+const json = await response.json();
+console.log(json.message);  // deve exibir "pong"
 {
   "expo": {
-    "name": "my-app",
-    "slug": "my-app",
+    "name": "frontend",
+    "slug": "frontend",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "myapp",
+    "scheme": "frontend",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
