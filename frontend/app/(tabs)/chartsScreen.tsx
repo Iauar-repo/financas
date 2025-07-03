@@ -1,10 +1,10 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 
-export default function ExploreScreen() {
+export default function ChartsScreen() {
   return (
     <View style={styles.container}>
-      <Text style={styles.text}>Transações...</Text>
+      <Text style={styles.text}>Gráficos...</Text>
     </View>
   );
 }
