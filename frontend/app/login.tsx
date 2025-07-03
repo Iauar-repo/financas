@@ -26,8 +26,10 @@ export default function LoginScreen() {
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isPasswordFocused, setIsPasswordFocused] = useState(false);
+  const [isUsernameFocused, setIsUsernameFocused] = useState(false);
   const router = useRouter();
   const passwordInputRef = useRef<TextInput>(null);
+  const usernameInputRef = useRef<TextInput>(null);
 
   const handleLogin = async () => {
     if (!username.trim() || !password.trim()) {
@@ -47,7 +49,8 @@ export default function LoginScreen() {
       });
 
       if (response.ok) {
-        router.replace('/');
+        // Navega para a tela principal do aplicativo (abas) após um login bem-sucedido.
+        router.replace('/(tabs)');
       } else {
         const errorBody = await response.text();
         try {
@@ -70,21 +73,33 @@ export default function LoginScreen() {
     <View style={styles.container}>
       <View style={styles.formWrapper}>
         <Text style={styles.title}>Login</Text>
-        <TextInput
-          style={styles.input}
-          placeholder="Usuário"
-          value={username}
-          onChangeText={setUsername}
-          autoCapitalize="none"
-          editable={!isLoading}
-          returnKeyType="next"
-          onSubmitEditing={() => passwordInputRef.current?.focus()}
-          blurOnSubmit={false}
-        />
-        <View style={styles.passwordContainer}>
+        <View style={styles.inputContainer}>
+          <TextInput
+            ref={usernameInputRef}
+            style={styles.textInput}
+            value={username}
+            onChangeText={setUsername}
+            autoCapitalize="none"
+            editable={!isLoading}
+            returnKeyType="next"
+            onSubmitEditing={() => passwordInputRef.current?.focus()}
+            blurOnSubmit={false}
+            onFocus={() => setIsUsernameFocused(true)}
+            onBlur={() => setIsUsernameFocused(false)}
+          />
+          {!isUsernameFocused && !username ? (
+            <TouchableOpacity
+              style={styles.placeholderOverlay}
+              activeOpacity={1}
+              onPress={() => usernameInputRef.current?.focus()}>
+              <Text style={styles.placeholderText}>Usuário</Text>
+            </TouchableOpacity>
+          ) : null}
+        </View>
+        <View style={styles.inputContainer}>
           <TextInput
             ref={passwordInputRef}
-            style={styles.passwordInput}
+            style={styles.textInput}
             value={password}
             onChangeText={setPassword}
             secureTextEntry
@@ -102,7 +117,11 @@ export default function LoginScreen() {
               <Text style={styles.placeholderText}>Senha</Text>
               <Text
                 style={styles.forgotPasswordText}
-                onPress={() => router.push('/forgot-password')}>
+                onPress={(e) => {
+                  // Impede que o evento de clique se propague para o TouchableOpacity pai
+                  e.stopPropagation();
+                  router.push('/forgot-password');
+                }}>
                 Esqueci a senha
               </Text>
             </TouchableOpacity>
@@ -146,16 +165,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     marginBottom: 20,
   },
-  input: {
-    width: '100%',
-    height: 40,
-    borderColor: 'gray',
-    borderWidth: 1,
-    borderRadius: 5,
-    marginBottom: 12,
-    paddingHorizontal: 10,
-  },
-  passwordContainer: {
+  inputContainer: {
     width: '100%',
     height: 40,
     borderColor: 'gray',
@@ -164,7 +174,7 @@ const styles = StyleSheet.create({
     marginBottom: 12,
     justifyContent: 'center',
   },
-  passwordInput: {
+  textInput: {
     height: '100%',
     paddingHorizontal: 10,
   },
@@ -174,15 +184,26 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     width: '100%',
+    height: '100%', // Garante que o overlay ocupe toda a altura do contêiner
     paddingHorizontal: 10,
-  },
+    ...Platform.select({
+      web: {
+        cursor: 'text',
+      },
+    }),
+  } as any,
   placeholderText: {
     color: 'gray',
   },
   forgotPasswordText: {
     color: '#007BFF',
     fontWeight: '500',
-  },
+    ...Platform.select({
+      web: {
+        cursor: 'pointer',
+      },
+    }),
+  } as any,
   button: {
     width: '100%',
     backgroundColor: '#007BFF',
