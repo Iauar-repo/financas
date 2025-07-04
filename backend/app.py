@@ -19,25 +19,19 @@ def index():
 def login():
     data = request.get_json()
 
-    if not data:
-        return jsonify(status=400, message='Missing data')
-    
     username = data.get('username')
     password = data.get('password')
 
     if username == 'admin' and password == '123':
-        session['username'] = username
-        return jsonify(status=200, message='User Logged in'),
+        #session['username'] = username
+        return jsonify(message='User Logged in'), 200
     else:
-        return jsonify(status=401, message='Wrong password'), #or fail_user
+        return jsonify(message='Wrong credentials'), 401
 
 
-@app.route('/api/test')
-def test():
-    if 'username' in session:
-        session['username'] = ''
-    
-    return jsonify(status='ok', message='User has logged out.')
+@app.route('/api/ping')
+def ping():
+    return jsonify(message='Pong!!!'), 200
 
 
 if __name__ == '__main__':
