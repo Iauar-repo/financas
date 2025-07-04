@@ -1,27 +1,43 @@
-from flask import Flask, render_template, request, redirect, session, flash, url_for, jsonify
+from flask import Flask, request, session, jsonify
 from flask_cors import CORS
 
 app = Flask(__name__)
+app.config.from_pyfile('config.py')
 CORS(app)
-app.secret_key = 'iauar'
 
-@app.route('/api/login', methods=['POST',])
+
+@app.route('/api/')
+def index():
+    if 'username' in session:
+        user = session['username']
+        return jsonify(status='ok', message=f'Logged in as {user}')
+    
+    return jsonify(status='fail', message='You are not logged in')
+
+
+@app.post('/api/login')
 def login():
     data = request.get_json()
 
     if not data:
-        return {"message": "Dados ausentes"}, 400
-
+        return {"status": "fail", "message": "Dados ausentes"}, 400
+    
     username = data.get('username')
     password = data.get('password')
 
-    #print(f"Usuário: {username}")
-    #print(f"Senha: {password}")
     if username == 'admin' and password == '123':
-        print('OK')
-        return jsonify({"message": "ok"})
+        session['username'] = username
+        return jsonify(status='ok', message='User Logged in')
     else:
-        return jsonify({"message": "fail_pass"}) #or fail_user
+        return jsonify(status='fail', message='Wrong password') #or fail_user
+
+
+@app.route('/api/test')
+def test():
+    if 'username' in session:
+        session['username'] = ''
+    
+    return jsonify(status='ok', message='User has logged out.')
 
 
 if __name__ == '__main__':

@@ -17,10 +17,15 @@ except mysql.connector.Error as err:
 cursor = conn.cursor()
 
 cursor.execute("DROP DATABASE IF EXISTS `financas`;")
-
 cursor.execute("CREATE DATABASE `financas`;")
-
 cursor.execute("USE `financas`;")
+
+cursor.execute("DROP USER IF EXISTS `financas`@`localhost`;")
+cursor.execute("FLUSH PRIVILEGES;")
+cursor.execute("CREATE USER `financas`@`localhost` IDENTIFIED BY 'fin123';")
+cursor.execute("GRANT CREATE, ALTER, DROP, INSERT, UPDATE, DELETE, SELECT on financas.* TO `financas`@`localhost` WITH GRANT OPTION;")
+cursor.execute("FLUSH PRIVILEGES;")
+
 
 # tables
 TABLES = {}
