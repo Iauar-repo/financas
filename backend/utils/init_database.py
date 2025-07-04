@@ -32,10 +32,11 @@ TABLES = {}
 
 TABLES['Users'] = ('''
       CREATE TABLE `users` (
+      `id` int(10) NOT NULL AUTO_INCREMENT,
       `name` varchar(20) NOT NULL,
       `nickname` varchar(10) NOT NULL,
       `password` varchar(100) NOT NULL,
-      PRIMARY KEY (`nickname`)
+      PRIMARY KEY (`id`)
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;''')
 
 for TBname in TABLES:
