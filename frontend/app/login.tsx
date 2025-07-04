@@ -8,6 +8,7 @@ import {
   ActivityIndicator,
   Platform,
   TouchableOpacity,
+  Alert,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -62,7 +63,7 @@ export default function LoginScreen() {
     setIsLoading(true);
 
     try {
-      const response = await fetch('http://localhost:5000/api/login', {
+      const response = await fetch('http://192.168.0.20:5000/api/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -70,26 +71,20 @@ export default function LoginScreen() {
         body: JSON.stringify({ username, password }),
       });
 
-      if (response.ok) {
+      if (response.ok) { // response.ok é verdadeiro para status 200-299
+        const data = await response.json();
+        // Idealmente, você verificaria um token aqui, como discutimos.
+        //if (data.token) { ... }
+        console.log('Login bem-sucedido, resposta:', data);
         if (rememberMe) {
           const credentials = { username, password };
           await AsyncStorage.setItem('rememberedCredentials', JSON.stringify(credentials));
         } else {
-          // Se "Lembrar" não estiver marcado, removemos quaisquer credenciais salvas.
           await AsyncStorage.removeItem('rememberedCredentials');
         }
-
-        // Navega para a tela principal do aplicativo (abas) após um login bem-sucedido.
         router.replace('/(tabs)');
       } else {
-        const errorBody = await response.text();
-        try {
-          const errorData = JSON.parse(errorBody);
-          showAlert('Falha no login', errorData.message || 'Senha ou usuário incorretos.');
-        } catch (e) {
-          console.error('Server error response (not JSON):', errorBody);
-          showAlert('Erro no Servidor', `Ocorreu um erro inesperado (Status: ${response.status}).`);
-        }
+         showAlert('Falha no Login', 'Credenciais inválidas.');
       }
     } catch (error) {
       console.error('Erro de Conexão:', error);

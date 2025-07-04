@@ -23,10 +23,17 @@ def login():
     password = data.get('password')
 
     if username == 'admin' and password == '123':
+<<<<<<< HEAD
         #session['username'] = username
         return jsonify(message='User Logged in'), 200
     else:
         return jsonify(message='Wrong credentials'), 401
+=======
+        session['username'] = username
+        return jsonify(message='User Logged in'), 200
+    else:
+        return jsonify(message='Wrong password'), 401 #or fail_user
+>>>>>>> f078be8f1c60f56a262fa983c6c30a6e2fac0c46
 
 
 @app.route('/api/ping')
