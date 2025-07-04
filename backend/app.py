@@ -27,9 +27,9 @@ def login():
 
     if username == 'admin' and password == '123':
         session['username'] = username
-        return jsonify(status=200, message='User Logged in'),
+        return jsonify(message='User Logged in'), 200
     else:
-        return jsonify(status=401, message='Wrong password'), #or fail_user
+        return jsonify(message='Wrong password'), 401 #or fail_user
 
 
 @app.route('/api/test')
