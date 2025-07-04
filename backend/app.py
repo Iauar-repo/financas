@@ -20,16 +20,16 @@ def login():
     data = request.get_json()
 
     if not data:
-        return {"status": "fail", "message": "Dados ausentes"}, 400
+        return jsonify(status=400, message='Missing data')
     
     username = data.get('username')
     password = data.get('password')
 
     if username == 'admin' and password == '123':
         session['username'] = username
-        return jsonify(status='ok', code=0, message='User Logged in')
+        return jsonify(status=200, message='User Logged in'),
     else:
-        return jsonify(status='fail', code=5, message='Wrong password') #or fail_user
+        return jsonify(status=401, message='Wrong password'), #or fail_user
 
 
 @app.route('/api/test')
