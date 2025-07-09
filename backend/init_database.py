@@ -32,17 +32,41 @@ TABLES = {}
 
 TABLES['Users'] = ('''
       CREATE TABLE `users` (
-      `id` int(10) NOT NULL AUTO_INCREMENT,
+      `id` int NOT NULL AUTO_INCREMENT,
       `name` varchar(20) NOT NULL,
       `nickname` varchar(10) NOT NULL,
       `password` varchar(100) NOT NULL,
-      PRIMARY KEY (`id`)
+      PRIMARY KEY (`id`),
+      UNIQUE (`nickname`)
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;''')
+
+TABLES['ActiveSessions'] = ('''
+CREATE TABLE `activesessions` (
+      `jti` VARCHAR(36),
+      `user_id` INT NOT NULL,
+      `ip_address` VARCHAR(45) NOT NULL,
+      `created_at` DATETIME NOT NULL,
+      `expires_at` DATETIME NOT NULL,
+      PRIMARY KEY (`jti`),
+      FOREIGN KEY (`user_id`) REFERENCES users(`id`)
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;''')
+
+TABLES['TokenBlocklist'] = ('''
+CREATE TABLE `tokenblocklist` (
+      `jti` VARCHAR(36),
+      `user_id` INT NOT NULL,
+      `ip_address` VARCHAR(45) NOT NULL,
+      `created_at` DATETIME NOT NULL,
+      `expires_at` DATETIME NOT NULL,
+      `revoked_at` DATETIME NOT NULL,
+      PRIMARY KEY (`jti`),
+      FOREIGN KEY (`user_id`) REFERENCES users(`id`)
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;''')
 
 for TBname in TABLES:
       TBquery = TABLES[TBname]
       try:
-            print(f'Creating table {TBname}\n')
+            print(f'Creating table {TBname}')
             cursor.execute(TBquery)
       except mysql.connector.Error as err:
             if err.errno == errorcode.ER_TABLE_EXISTS_ERROR:
@@ -50,7 +74,7 @@ for TBname in TABLES:
             else:
                   print(err.msg)
       else:
-            print('OK')
+            print('OK\n')
 
 
 # inserting users
