@@ -1,4 +1,4 @@
-from flask import request, jsonify, current_app as app
+from flask import request, jsonify
 from flask_jwt_extended import jwt_required, get_jwt_identity, get_jwt
 
 from app.auth.service import login_user, logout_user, rotate_refresh_token, whoami

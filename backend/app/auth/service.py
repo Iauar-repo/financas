@@ -32,9 +32,11 @@ def login_user(username: str, password: str, ip_address: str):
     try:
         user = Users.query.filter_by(nickname=username).first()
         if not user:
+            app.logger.error(f"[Login] Usuário não existe: {username}")
             return None, "Usuário não existe", 401
 
         if not check_password_hash(user.password, password):
+            app.logger.error(f"[Login] Senha incorreta. User: {username}")
             return None, "Senha incorreta", 401
 
         revoke_old_session(user.id)
@@ -74,6 +76,7 @@ def rotate_refresh_token(user_id: int, jti: str, ip_address: str):
         current_token = ActiveSessions.query.filter_by(jti=jti, user_id=user_id).first()
 
         if current_token.ip_address != ip_address:
+            app.logger.error(f"[refresh token] IP não autorizado: {ip_address} | Esperado: {current_token.ip_address}")
             return None, "Endereço IP não autorizado", 403
 
         revoke_old_session(user_id)
@@ -84,7 +87,7 @@ def rotate_refresh_token(user_id: int, jti: str, ip_address: str):
         return { 
             "access_token": access_token,
             "refresh_token": refresh_token,
-            "message": "New Access Token created"
+            "message": "Novos tokens foram gerados"
             }, None, 200
     
     except Exception as e:
@@ -98,7 +101,8 @@ def whoami(user_id: int):
         user = Users.query.get(user_id)
 
         if not user:
-            return None, 'Token inválido / Usuário não existe', 404
+            app.logger.error(f"[WhoamI] Usuário não existe. ID: {user_id}")
+            return None, 'Usuário não existe', 404
         
         return {
             "id": user.id,
