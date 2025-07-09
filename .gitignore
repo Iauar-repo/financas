@@ -2,6 +2,7 @@
 venv/
 *.pyc
 __pycache__/
+logs/
 
 # Variáveis sensíveis
 .env
