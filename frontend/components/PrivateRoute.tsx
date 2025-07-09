@@ -1,9 +1,13 @@
-// app/(tabs)/_layout.tsx
-import { Tabs, Redirect } from 'expo-router';
+import React from 'react';
 import { useAuth } from '@/hooks/useAuth';
+import { Redirect } from 'expo-router';
 import { ActivityIndicator, View } from 'react-native';
 
-export default function ProtectedTabsLayout() {
+interface Props {
+  children: React.ReactNode;
+}
+
+export default function PrivateRoute({ children }: Props) {
   const { isAuthenticated, isLoading } = useAuth();
 
   if (isLoading) {
@@ -18,7 +22,5 @@ export default function ProtectedTabsLayout() {
     return <Redirect href="/login" />;
   }
 
-  return (
-    <Tabs screenOptions={{ headerShown: true }} />
-  );
+  return <>{children}</>;
 }

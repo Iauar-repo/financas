@@ -8,19 +8,9 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   Platform,
+  Alert,
 } from 'react-native';
 import { useRouter } from 'expo-router';
-
-// Reutilizando a função de alerta para consistência entre plataformas
-function showAlert(title: string, message: string) {
-  if (Platform.OS === 'web') {
-    alert(`${title}\n\n${message}`);
-  } else {
-    import('react-native').then(({ Alert }) => {
-      Alert.alert(title, message);
-    });
-  }
-}
 
 export default function ForgotPasswordScreen() {
   const colorScheme = useColorScheme();
@@ -32,7 +22,7 @@ export default function ForgotPasswordScreen() {
 
   const handlePasswordReset = async () => {
     if (!email.trim()) {
-      showAlert('Erro', 'Por favor, insira seu e-mail.');
+      Alert.alert('Erro', 'Por favor, insira seu e-mail.');
       return;
     }
 
@@ -41,7 +31,7 @@ export default function ForgotPasswordScreen() {
     await new Promise(resolve => setTimeout(resolve, 1500));
     setIsLoading(false);
 
-    showAlert(
+    Alert.alert(
       'Verifique seu E-mail',
       'Se uma conta com este e-mail existir, um link para redefinir a senha foi enviado.'
     );
