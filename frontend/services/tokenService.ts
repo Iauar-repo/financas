@@ -4,6 +4,7 @@ import { API_URL } from '@/constants/config';
 
 // Salva os tokens
 export async function saveTokens(access: string, refresh: string | null | undefined) {
+  console.log('Salvando tokens:', { access, refresh });
   if (typeof access !== 'string') {
     // É uma boa prática garantir que o token de acesso seja válido antes de armazenar.
     throw new Error('O token de acesso recebido é inválido.');
@@ -42,7 +43,7 @@ export async function refreshToken(): Promise<string> {
   const data = await res.json();
   if (!res.ok || !data.token) throw new Error(data.message || 'Falha ao renovar token');
 
-  await saveTokens(data.token, data.refreshToken);
+  await saveTokens(data.access_token, data.refresh_token);
   return data.token;
 }
 

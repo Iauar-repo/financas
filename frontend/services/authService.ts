@@ -14,9 +14,11 @@ export async function login(username: string, password: string) {
   const data = await res.json();
   if (!res.ok) throw new Error(data.message || 'Falha no login');
 
-  await saveTokens(data.token, data.refreshToken);
+  await saveTokens(data.access_token, data.refresh_token);
+
   return data;
 }
+
 
 // Registro no backend
 export async function register(username: string, email: string, password: string) {
