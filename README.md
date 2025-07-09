@@ -18,8 +18,8 @@ Sistema completo para gerenciamento financeiro pessoal com:
 ## 🔗 Acesso Rápido
 | Seção       | Descrição                          | Link |
 |-------------|------------------------------------|------|
-| **📡 Backend** | API RESTful | [Ver Detalhes](backend/README.md) |
 | **🖥️ Frontend** | Interface moderna e responsiva | [Ver Detalhes](frontend/readme.md) |
+| **📡 Backend** | API RESTful | [Ver Detalhes](backend/README.md) |
 
 ---
 
