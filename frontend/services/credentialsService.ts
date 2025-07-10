@@ -1,3 +1,5 @@
+
+// services/credentialsService.ts
 import * as SecureStore from 'expo-secure-store';
 
 const CREDENTIALS_KEY = 'rememberedCredentials';

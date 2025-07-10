@@ -32,18 +32,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   useEffect(() => {
     const loadAuthData = async () => {
       try {
-        // validateToken irá lançar um erro se o token for inválido e não puder ser renovado.
+        // Will throw if token is invalid or cannot be refreshed.
         await validateToken();
-        // Se a validação for bem-sucedida, um token válido existe no SecureStore.
+        // If validation succeeded, we have a valid token in SecureStore.
         const currentToken = await getToken();
         setToken(currentToken);
       } catch (e) {
-        // Qualquer erro na validação significa que não estamos autenticados.
-        // Garante que estamos deslogados para limpar quaisquer tokens restantes.
+        // Any error means we are not authenticated. Clean up.
         await logoutService();
         setToken(null);
       } finally {
-        // Finalizou o carregamento, o app agora pode renderizar a tela correta.
         setIsLoading(false);
       }
     };
@@ -53,14 +51,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const signIn = async (username: string, password: string) => {
     const data = await loginService(username, password);
-    setToken(data.token);
-    router.replace('/(tabs)'); // Navega para a área protegida após o login
+    setToken(data.access_token); 
+    router.replace('/(tabs)'); // Redirect to main app after login
   };
 
   const signOut = async () => {
     await logoutService();
     setToken(null);
-    router.replace('/login'); // Navega para a tela de login após o logout
+    router.replace('/login'); // Redirect to login after logout
   };
 
   return (
