@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { useColorScheme } from '@/hooks/useColorScheme';
 import {
@@ -22,8 +23,6 @@ import {
 } from '@/services/credentialsService';
 import { useAuth } from '@/contexts/AuthContext';
 
-
-
 export default function LoginScreen() {
   const colorScheme = useColorScheme();
   const [username, setUsername] = useState('');
@@ -32,8 +31,17 @@ export default function LoginScreen() {
   const [isPasswordFocused, setIsPasswordFocused] = useState(false);
   const [isUsernameFocused, setIsUsernameFocused] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
-  const { signIn } = useAuth();
+
+  const { signIn, isAuthenticated } = useAuth();
   const router = useRouter();
+  
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      router.replace('/(tabs)');
+    }
+  }, [isAuthenticated]);
+
   const passwordInputRef = useRef<TextInput>(null);
   const usernameInputRef = useRef<TextInput>(null);
 
@@ -62,7 +70,6 @@ export default function LoginScreen() {
     setIsLoading(true);
 
     try {
-      // Usar a função signIn do contexto, que lida com o login e a atualização do estado.
       await signIn(username, password);
 
       if (rememberMe) {
@@ -129,13 +136,8 @@ export default function LoginScreen() {
           justifyContent: 'space-between',
           alignItems: 'center',
           width: '100%',
-          height: '100%', // Garante que o overlay ocupe toda a altura do contêiner
+          height: '100%',
           paddingHorizontal: 10,
-          ...Platform.select({
-            web: {
-              cursor: 'text',
-            },
-          }),
         } as any,
         placeholderText: {
           color: colorScheme === 'dark' ? '#8e8e8e' : 'gray',
@@ -143,11 +145,6 @@ export default function LoginScreen() {
         forgotPasswordText: {
           color: '#007BFF',
           fontWeight: '500',
-          ...Platform.select({
-            web: {
-              cursor: 'pointer',
-            },
-          }),
         } as any,
         button: {
           width: '100%',
@@ -263,7 +260,6 @@ export default function LoginScreen() {
                     <Text
                       style={styles.forgotPasswordText}
                       onPress={(e) => {
-                        // Impede que o evento de clique se propague para o TouchableOpacity pai
                         e.stopPropagation();
                         router.push('/forgot-password');
                       }}>

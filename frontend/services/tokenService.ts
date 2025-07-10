@@ -35,16 +35,17 @@ export async function refreshToken(): Promise<string> {
   if (!refresh) throw new Error('Refresh token ausente');
 
   const res = await fetch(`${API_URL}/api/auth/refresh`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ refreshToken: refresh }),
-  });
+  method: "POST",
+  headers: {
+    Authorization: `Bearer ${refresh}`, 
+  },
+});
 
   const data = await res.json();
-  if (!res.ok || !data.token) throw new Error(data.message || 'Falha ao renovar token');
+  if (!res.ok || !data.refresh_token || !data.access_token) throw new Error(data.message || 'Falha ao renovar token');
 
   await saveTokens(data.access_token, data.refresh_token);
-  return data.token;
+  return data.refresh_token;
 }
 
 // Logout (limpa tudo)

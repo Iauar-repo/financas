@@ -1,3 +1,5 @@
+
+// services/userProfileService.ts
 import { apiFetch } from './api';
 
 export async function getUserProfile() {
