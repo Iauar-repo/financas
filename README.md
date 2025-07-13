@@ -1,7 +1,7 @@
 # 💰 Controle Financeiro Pessoal - Full Stack
 
 **Projeto sendo desenvolvido por:**  
-🟢 [Rafael de Pilla](https://github.com/Rath09) - Frontend  
+🟢 [Rafael Rondon](https://github.com/Rath09) - Frontend  
 🔵 [Rodrigo Lopes](https://github.com/rodrigofl-dev) - Backend
 
 ---
