@@ -1,3 +1,5 @@
+
+// utils/formatters.ts
 export function formatCurrency(value: number | string, locale = 'pt-BR', currency = 'BRL') {
   const number = typeof value === 'string' ? parseFloat(value) : value;
   return new Intl.NumberFormat(locale, {

@@ -1,11 +1,9 @@
+
+// app/(tabs)/index.tsx
 import { Redirect } from 'expo-router';
 import { useAuth } from '@/contexts/AuthContext';
 import { ActivityIndicator, View } from 'react-native';
 
-/**
- * Este é o ponto de entrada do app.
- * Ele decide qual tela mostrar com base no estado de autenticação.
- */
 export default function Index() {
   const { isLoading, isAuthenticated } = useAuth();
 
@@ -21,8 +19,9 @@ export default function Index() {
   // Após o carregamento, redireciona o usuário.
   // Os layouts de `(tabs)` e `(auth)` cuidarão do resto.
   if (isAuthenticated) {
-    return <Redirect href="/(tabs)" />;
+    return <Redirect href="/debug" />; // /tabs aqui
   } else {
-    return <Redirect href="/login" />;
+    return <Redirect href="/debug" />; // /login aqui
   }
 }
+
