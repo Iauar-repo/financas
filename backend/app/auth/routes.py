@@ -4,7 +4,6 @@ from flask_jwt_extended import jwt_required, get_jwt_identity, get_jwt
 from app.auth.service import login_user, logout_user, rotate_refresh_token, whoami
 from app.auth import auth_bp
 
-
 @auth_bp.get('/health')
 def health():
     return jsonify(message="OK"), 200

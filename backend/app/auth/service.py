@@ -3,7 +3,7 @@ from flask import current_app as app
 
 from app.extensions import db
 from app.models import Users, ActiveSessions, TokenBlocklist
-from .utils import generate_tokens
+from app.auth.utils import generate_tokens
 
 
 # helper: cria nova sessão
@@ -30,17 +30,19 @@ def revoke_old_session(user_id: int):
 # main: login
 def login_user(username: str, password: str, ip_address: str):
     try:
-        user = Users.query.filter_by(nickname=username).first()
+        user = Users.query.filter_by(username=username).first()
         if not user:
             app.logger.error(f"[Login] Usuário não existe: {username}")
-            return None, "Usuário não existe", 401
+            return None, "Usuário não existe", 404
 
         if not check_password_hash(user.password, password):
             app.logger.error(f"[Login] Senha incorreta. User: {username}")
-            return None, "Senha incorreta", 401
+            return None, "Senha incorreta", 404
 
+        is_admin = True if user.is_admin == 1 else False
+        
         revoke_old_session(user.id)
-        access_token, refresh_token, _, refresh_jti = generate_tokens(user.id)
+        access_token, refresh_token, _, refresh_jti = generate_tokens(user.id, is_admin)
         create_session(user.id, refresh_jti, ip_address)
         db.session.commit()
 
@@ -52,7 +54,7 @@ def login_user(username: str, password: str, ip_address: str):
     
     except Exception as e:
         db.session.rollback()
-        app.logger.error(f"Erro desconhecido no Login: {str(e)}")
+        app.logger.error(f"[Login] Erro desconhecido no Login: {str(e)}")
         return None, f"Erro desconhecido: {str(e)}", 500
 
 # main: logout
@@ -67,7 +69,7 @@ def logout_user(user_id: int):
 
     except Exception as e:
         db.session.rollback()
-        app.logger.error(f"Erro desconhecido no Logout: {str(e)}")
+        app.logger.error(f"[Logout] Erro desconhecido no Logout: {str(e)}")
         return None, f"Erro desconhecido: {str(e)}", 500
 
 # main: gera novo refresh_token
@@ -79,8 +81,11 @@ def rotate_refresh_token(user_id: int, jti: str, ip_address: str):
             app.logger.error(f"[refresh token] IP não autorizado: {ip_address} | Esperado: {current_token.ip_address}")
             return None, "Endereço IP não autorizado", 403
 
+        user = Users.query.filter_by(id=user_id).first()
+        is_admin = True if user.is_admin == 1 else False
+
         revoke_old_session(user_id)
-        access_token, refresh_token, _, refresh_jti = generate_tokens(user_id)
+        access_token, refresh_token, _, refresh_jti = generate_tokens(user_id, is_admin)
         create_session(user_id, refresh_jti, ip_address)
         db.session.commit()
 
@@ -92,7 +97,7 @@ def rotate_refresh_token(user_id: int, jti: str, ip_address: str):
     
     except Exception as e:
         db.session.rollback()
-        app.logger.error(f"Erro desconhecido ao gerar novos tokens: {str(e)}")
+        app.logger.error(f"[refresh token] Erro desconhecido ao gerar novos tokens: {str(e)}")
         return None, f"Erro desconhecido: {str(e)}", 500
 
 # main: checkagem de sessão
@@ -106,10 +111,10 @@ def whoami(user_id: int):
         
         return {
             "id": user.id,
-            "nickname": user.nickname,
+            "nickname": user.username,
             "message": 'Autenticado'
         }, None, 200
     
     except Exception as e:
-        app.logger.error(f"Erro desconhecido ao buscar infos do usuário: {str(e)}")
+        app.logger.error(f"[WhoamI] Erro desconhecido ao buscar infos do usuário: {str(e)}")
         return None, f"Erro desconhecido: {str(e)}", 500

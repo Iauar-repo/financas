@@ -1,6 +1,6 @@
 from flask import Flask, jsonify
 from werkzeug.exceptions import HTTPException
-from .extensions import db, jwt, cors
+from .extensions import db, jwt, cors, limiter
 from .config import config_dict
 from .logger import setup_logger
 
@@ -16,13 +16,14 @@ def create_app(config_name='default'):
     db.init_app(app)
     cors.init_app(app)
     jwt.init_app(app)
+    limiter.init_app(app)
     
     # blueprints
     from app.auth import auth_bp
-    #from app.api import api_bp
+    from app.users import users_bp
     
     app.register_blueprint(auth_bp, url_prefix='/api/auth')
-    #app.register_blueprint(api_bp, url_prefix='/api')
+    app.register_blueprint(users_bp, url_prefix='/api/users')
     
     #for rule in app.url_map.iter_rules():
     #    print(rule)

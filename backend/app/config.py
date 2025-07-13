@@ -30,14 +30,12 @@ class Config:
 class DevelopmentConfig(Config):
     DEBUG = True
     SQLALCHEMY_ECHO = True
-    JWT_ACCESS_TOKEN_EXPIRES = timedelta(minutes=1)
-    JWT_REFRESH_TOKEN_EXPIRES = timedelta(minutes=2)
+    #JWT_ACCESS_TOKEN_EXPIRES = timedelta(minutes=1)
+    #JWT_REFRESH_TOKEN_EXPIRES = timedelta(minutes=2)
 
 class ProductionConfig(Config):
     DEBUG = False
     PROPAGATE_EXCEPTIONS = True
-    JWT_ACCESS_TOKEN_EXPIRES = timedelta(minutes=1) # Remover após testes
-    JWT_REFRESH_TOKEN_EXPIRES = timedelta(minutes=2) # Remover após testes
 
 config_dict = {
     'dev': DevelopmentConfig,

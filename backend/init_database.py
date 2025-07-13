@@ -1,12 +1,13 @@
 import mysql.connector
 from mysql.connector import errorcode
 from flask_bcrypt import generate_password_hash
+from datetime import datetime, timezone
 
 try:
       conn = mysql.connector.connect(
             host='127.0.0.1',
             user='root',
-            password='iauar'
+            password='admin'
       )
 except mysql.connector.Error as err:
       if err.errno == errorcode.ER_ACCESS_DENIED_ERROR:
@@ -33,18 +34,22 @@ TABLES = {}
 TABLES['Users'] = ('''
       CREATE TABLE `users` (
       `id` int NOT NULL AUTO_INCREMENT,
-      `name` varchar(20) NOT NULL,
-      `nickname` varchar(10) NOT NULL,
-      `password` varchar(100) NOT NULL,
+      `name` varchar(60) NOT NULL,
+      `email` varchar(320) NOT NULL,
+      `username` varchar(40) NOT NULL,
+      `password` varchar(60) NOT NULL,
+      `is_admin` int NOT NULL,
+      `created_at` DATETIME NOT NULL,
       PRIMARY KEY (`id`),
-      UNIQUE (`nickname`)
+      UNIQUE (`username`),
+      UNIQUE (`email`)
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;''')
 
 TABLES['ActiveSessions'] = ('''
 CREATE TABLE `activesessions` (
       `jti` VARCHAR(36),
       `user_id` INT NOT NULL,
-      `ip_address` VARCHAR(45) NOT NULL,
+      `ip_address` VARCHAR(15) NOT NULL,
       `created_at` DATETIME NOT NULL,
       `expires_at` DATETIME NOT NULL,
       PRIMARY KEY (`jti`),
@@ -55,7 +60,7 @@ TABLES['TokenBlocklist'] = ('''
 CREATE TABLE `tokenblocklist` (
       `jti` VARCHAR(36),
       `user_id` INT NOT NULL,
-      `ip_address` VARCHAR(45) NOT NULL,
+      `ip_address` VARCHAR(15) NOT NULL,
       `created_at` DATETIME NOT NULL,
       `expires_at` DATETIME NOT NULL,
       `revoked_at` DATETIME NOT NULL,
@@ -78,10 +83,10 @@ for TBname in TABLES:
 
 
 # inserting users
-USERquery = 'INSERT INTO users (name, nickname, password) VALUES (%s, %s, %s)'
+USERquery = 'INSERT INTO users (name, email, username, password, is_admin, created_at) VALUES (%s, %s, %s, %s, %s, %s)'
 USERvalues = [
-      ("Rodrigo Lopes", "Apoc", generate_password_hash("admin").decode('utf-8')),
-      ("Rafael de Pilla", "Rath", generate_password_hash("admin").decode('utf-8'))
+      ("Rodrigo Lopes", "rodrigof.lops@gmail.com", "Apoc", generate_password_hash("admin").decode('utf-8'), 1, datetime.now(timezone.utc).replace(tzinfo=None)),
+      ("Rafael de Pilla", "rrmontebello@gmail.com", "Rath", generate_password_hash("admin").decode('utf-8'), 1, datetime.now(timezone.utc).replace(tzinfo=None))
 ]
 cursor.executemany(USERquery, USERvalues)
 
