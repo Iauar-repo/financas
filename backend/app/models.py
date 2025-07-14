@@ -12,6 +12,9 @@ class Users(db.Model):
     is_admin = db.Column(db.Integer, default=lambda: 0)
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc).replace(tzinfo=None))
 
+    active = db.relationship("ActiveSessions", backref="user", cascade="all, delete", passive_deletes=True)
+    blocklist = db.relationship("TokenBlocklist", backref="user", cascade="all, delete", passive_deletes=True)
+
     def __repr__(self):
         return f'<Name {self.name}>'
 
@@ -19,7 +22,7 @@ class ActiveSessions(db.Model):
     __tablename__ = 'activesessions'
     
     jti = db.Column(db.String(36), primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
     ip_address = db.Column(db.String(15), nullable=False)
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc).replace(tzinfo=None))
     expires_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc).replace(tzinfo=None) + timedelta(days=7))
@@ -31,7 +34,7 @@ class TokenBlocklist(db.Model):
     __tablename__ = 'tokenblocklist'
     
     jti = db.Column(db.String(36), primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
     ip_address = db.Column(db.String(15), nullable=False)
     created_at = db.Column(db.DateTime, nullable=False)
     expires_at = db.Column(db.DateTime, nullable=False)

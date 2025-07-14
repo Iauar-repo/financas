@@ -53,7 +53,7 @@ CREATE TABLE `activesessions` (
       `created_at` DATETIME NOT NULL,
       `expires_at` DATETIME NOT NULL,
       PRIMARY KEY (`jti`),
-      FOREIGN KEY (`user_id`) REFERENCES users(`id`)
+      FOREIGN KEY (`user_id`) REFERENCES users(`id`) ON DELETE CASCADE
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;''')
 
 TABLES['TokenBlocklist'] = ('''
@@ -65,7 +65,7 @@ CREATE TABLE `tokenblocklist` (
       `expires_at` DATETIME NOT NULL,
       `revoked_at` DATETIME NOT NULL,
       PRIMARY KEY (`jti`),
-      FOREIGN KEY (`user_id`) REFERENCES users(`id`)
+      FOREIGN KEY (`user_id`) REFERENCES users(`id`) ON DELETE CASCADE
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;''')
 
 for TBname in TABLES:

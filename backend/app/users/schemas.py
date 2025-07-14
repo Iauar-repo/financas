@@ -14,5 +14,18 @@ class UserSchema(Schema):
         data["username"] = data.get("username", "").lower()
         return data
 
+class UpdateUserSchema(Schema):
+    name = fields.Str()
+    username = fields.Str()
+    email = fields.Email()
+    password = fields.Str()
+
+    @pre_load
+    def normalize_input(self, data, **kwargs):
+        data["email"] = data.get("email", "").lower()
+        data["username"] = data.get("username", "").lower()
+        return data
+
 user_schema = UserSchema()
 users_schema = UserSchema(many=True)
+updateUser_schema = UpdateUserSchema()
