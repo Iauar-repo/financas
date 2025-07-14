@@ -66,6 +66,10 @@ def createUser_(input):
 def updateUser_(input, user_id):
     try:
         user = Users.query.get(user_id)
+        if not user:
+                app.logger.error(f"[UpdateUser] Usuário não existe. ID: {user_id}")
+                return None, "Usuário não existe", 404
+        
         data = updateUser_schema.load(input, partial=True)
         _updateUser(data, user)
         db.session.commit()

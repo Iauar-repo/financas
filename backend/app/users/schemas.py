@@ -18,7 +18,7 @@ class UpdateUserSchema(Schema):
     name = fields.Str()
     username = fields.Str()
     email = fields.Email()
-    password = fields.Str()
+    password = fields.Str(load_only=True)
 
     @pre_load
     def normalize_input(self, data, **kwargs):
