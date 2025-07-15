@@ -25,8 +25,8 @@ def create_app(config_name='default'):
     app.register_blueprint(auth_bp, url_prefix='/api/auth')
     app.register_blueprint(users_bp, url_prefix='/api/users')
     
-    for rule in app.url_map.iter_rules():
-        print(rule)
+    #for rule in app.url_map.iter_rules():
+    #    print(rule)
     
     # callback JWT
     from app.models import TokenBlocklist
