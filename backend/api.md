@@ -77,6 +77,36 @@ Valida o `access_token` e retorna os dados do usuário autenticado.
 }
 ```
 ---
+
+### GET `/api/auth/confirm/<token>`
+
+Valida o token de confirmação de email.
+
+#### Response
+```json
+{
+    "message": "Email confirmado com sucesso"
+}
+```
+---
+
+### POST `/api/auth/reenvio`
+
+Reenvia token de verificação de email.
+
+#### Request
+```json
+{
+    "email": "mail@domain.com"
+}
+```
+#### Response
+```json
+{
+    "message": "Email de confirmação foi reenviado"
+}
+```
+---
 </details>
 
 <details>

@@ -5,6 +5,7 @@ from flask_bcrypt import generate_password_hash
 from app.extensions import db
 from app.models import Users
 from app.users.schemas import user_schema, users_schema, updateUser_schema
+from app.auth.utils import send_confirmation_email
 
 # helper: insert novo usuário
 def _insertUser(input):
@@ -17,7 +18,7 @@ def _insertUser(input):
 
 # helper: atualiza usuário
 def _updateUser(data, user):
-    blacklist = ['ID', 'is_admin']
+    blacklist = ['ID', 'is_admin', 'email_confirmed']
 
     for key,val in data.items():
         if key not in blacklist:
@@ -49,6 +50,9 @@ def createUser_(input):
         data = user_schema.load(input)
         _insertUser(data)
         db.session.commit()
+
+        user = Users.query.filter_by(email=data['email']).first()
+        send_confirmation_email(user)
         
         return {"message": f"Usuário {data['username']} registrado"}, None, 200
     

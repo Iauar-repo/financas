@@ -1,7 +1,14 @@
 from flask import request, jsonify
 from flask_jwt_extended import jwt_required, get_jwt_identity, get_jwt
 
-from app.auth.service import login_user, logout_user, rotate_refresh_token, whoami
+from app.auth.service import (
+    login_user,
+    logout_user,
+    rotate_refresh_token,
+    whoami,
+    confirmEmail_,
+    reenvioEmail_
+)
 from app.auth import auth_bp
 
 @auth_bp.get('/health')
@@ -51,6 +58,25 @@ def me():
     user_id = int(get_jwt_identity())
 
     result, error, status = whoami(user_id)
+    if error:
+        return jsonify(message=error), status
+    
+    return jsonify(result), status
+
+@auth_bp.get("/confirm/<token>")
+def confirmEmail(token):
+    result, error, status = confirmEmail_(token)
+    if error:
+        return jsonify(message=error), status
+    
+    return jsonify(result), status
+
+@auth_bp.post("/reenvio")
+def reenvioEmail():
+    data = request.get_json()
+    email = data.get('email')
+
+    result, error, status = reenvioEmail_(email)
     if error:
         return jsonify(message=error), status
     

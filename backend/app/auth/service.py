@@ -3,7 +3,7 @@ from flask import current_app as app
 
 from app.extensions import db
 from app.models import Users, ActiveSessions, TokenBlocklist
-from app.auth.utils import generate_tokens
+from app.auth.utils import generate_tokens, confirm_token, send_confirmation_email
 
 
 # helper: cria nova sessão
@@ -38,6 +38,10 @@ def login_user(username: str, password: str, ip_address: str):
         if not check_password_hash(user.password, password):
             app.logger.error(f"[Login] Senha incorreta. User: {username}")
             return None, "Senha incorreta", 404
+        
+        if not user.email_confirmed == 1:
+            app.logger.error(f"[Login] Email não verificado: {user.email}")
+            return None, "Email não verificado", 404
 
         is_admin = True if user.is_admin == 1 else False
         
@@ -117,4 +121,45 @@ def whoami(user_id: int):
     
     except Exception as e:
         app.logger.error(f"[WhoamI] Erro desconhecido ao buscar infos do usuário: {str(e)}")
+        return None, f"Erro desconhecido: {str(e)}", 500
+
+# main: confirmação de email
+def confirmEmail_(token):
+    try:
+        email = confirm_token(token)
+        if not email:
+            app.logger.error(f"[ConfirmEmail] Token inválido ou expirado")
+            return None, 'Token inválido ou expirado', 404
+
+        user = Users.query.filter_by(email=email).first()
+        if not user:
+            app.logger.error(f"[ConfirmEmail] Usuário não existe. Email: {email}")
+            return None, 'Usuário não existe', 404
+
+        user.email_confirmed = 1
+        db.session.commit()
+
+        return {"message":"Email confirmado com sucesso"}, None, 200
+    
+    except Exception as e:
+        app.logger.error(f"[ConfirmEmail] Erro desconhecido ao confirmar email: {str(e)}")
+        return None, f"Erro desconhecido: {str(e)}", 500
+
+# main: reenvio confirmação de email
+def reenvioEmail_(email):
+    try:
+        user = Users.query.filter_by(email=email).first()
+        if not user:
+            app.logger.error(f"[ReenvioEmail] Email não registrado: {email}")
+            return None, 'Email não registrado', 404
+        
+        if user.email_confirmed == 1:
+            return {"message":"Email já confirmado"}, None, 200
+        
+        send_confirmation_email(user)
+
+        return {"message":"Email de confirmação foi reenviado"}, None, 200
+
+    except Exception as e:
+        app.logger.error(f"[ReenvioEmail] Erro desconhecido ao reenviar email: {str(e)}")
         return None, f"Erro desconhecido: {str(e)}", 500

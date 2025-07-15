@@ -4,6 +4,7 @@ from flask_jwt_extended import jwt_required
 from app.users.service import listUsers_, createUser_, updateUser_, deleteUser_
 from app.users import users_bp
 from app.auth.utils import admin_required, owner_or_admin_required
+from app.extensions import limiter
 
 # GET  /api/users  Listar usuários
 @users_bp.get('/')
@@ -18,6 +19,7 @@ def listUsers():
 
 # POST  /api/users  Criar novo usuário
 @users_bp.post('/registro')
+@limiter.limit("2 per 5 minutes")
 def createUser():
     input = request.get_json()
     

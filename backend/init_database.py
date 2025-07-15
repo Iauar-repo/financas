@@ -39,6 +39,7 @@ TABLES['Users'] = ('''
       `username` varchar(40) NOT NULL,
       `password` varchar(60) NOT NULL,
       `is_admin` int NOT NULL,
+      `email_confirmed` int NOT NULL,
       `created_at` DATETIME NOT NULL,
       PRIMARY KEY (`id`),
       UNIQUE (`username`),
@@ -83,10 +84,26 @@ for TBname in TABLES:
 
 
 # inserting users
-USERquery = 'INSERT INTO users (name, email, username, password, is_admin, created_at) VALUES (%s, %s, %s, %s, %s, %s)'
+USERquery = 'INSERT INTO users (name, email, username, password, is_admin, created_at, email_confirmed) VALUES (%s, %s, %s, %s, %s, %s, %s)'
 USERvalues = [
-      ("Rodrigo Lopes", "rodrigof.lops@gmail.com", "Apoc", generate_password_hash("admin").decode('utf-8'), 1, datetime.now(timezone.utc).replace(tzinfo=None)),
-      ("Rafael de Pilla", "rrmontebello@gmail.com", "Rath", generate_password_hash("admin").decode('utf-8'), 1, datetime.now(timezone.utc).replace(tzinfo=None))
+      (
+            "Rodrigo Lopes",
+            "123@gmail.com",
+            "Apoc",
+            generate_password_hash("admin").decode('utf-8'),
+            1,
+            datetime.now(timezone.utc).replace(tzinfo=None),
+            1
+      ),
+      (
+            "Rafael de Pilla",
+            "rrmontebello@gmail.com",
+            "Rath",
+            generate_password_hash("admin").decode('utf-8'),
+            1,
+            datetime.now(timezone.utc).replace(tzinfo=None),
+            1
+      )
 ]
 cursor.executemany(USERquery, USERvalues)
 

@@ -9,7 +9,8 @@ class Users(db.Model):
     email = db.Column(db.String(320), nullable=False, unique=True)
     username = db.Column(db.String(40), nullable=False, unique=True)
     password = db.Column(db.String(60), nullable=False)
-    is_admin = db.Column(db.Integer, default=lambda: 0)
+    is_admin = db.Column(db.Integer, default=0)
+    email_confirmed = db.Column(db.Integer, default=0)
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc).replace(tzinfo=None))
 
     active = db.relationship("ActiveSessions", backref="user", cascade="all, delete", passive_deletes=True)

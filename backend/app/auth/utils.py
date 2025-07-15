@@ -8,6 +8,10 @@ from flask_jwt_extended import (
 )
 from functools import wraps
 from flask import jsonify
+from itsdangerous import URLSafeTimedSerializer
+from flask import current_app as app
+from flask_mail import Message
+from app.extensions import mail
 
 # gera novos tokens
 def generate_tokens(user_id, is_admin):
@@ -48,3 +52,24 @@ def owner_or_admin_required(fn):
 
         return fn(user_id, *args, **kwargs)
     return wrapper
+
+# token de confirmação de email
+def generate_confirmation_token(email):
+    s = URLSafeTimedSerializer(app.config["SECRET_KEY"])
+    return s.dumps(email, salt="email-confirm")
+
+def confirm_token(token, expiration=3600):
+    s = URLSafeTimedSerializer(app.config["SECRET_KEY"])
+    try:
+        email = s.loads(token, salt="email-confirm", max_age=expiration)
+    except Exception:
+        return None
+    return email
+
+def send_confirmation_email(user):
+    token = generate_confirmation_token(user.email)
+    confirm_url = f"http://localhost:5000/api/auth/confirm/{token}"
+    html = f"<p>Olá {user.name}, confirme seu e-mail clicando <a href='{confirm_url}'>aqui</a>.</p>"
+
+    msg = Message(subject="Confirme seu e-mail", recipients=[user.email], html=html)
+    mail.send(msg)

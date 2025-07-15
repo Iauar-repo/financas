@@ -1,6 +1,6 @@
 from flask import Flask, jsonify
 from werkzeug.exceptions import HTTPException
-from .extensions import db, jwt, cors, limiter
+from .extensions import db, jwt, cors, limiter, mail
 from .config import config_dict
 from .logger import setup_logger
 
@@ -17,6 +17,7 @@ def create_app(config_name='default'):
     cors.init_app(app)
     jwt.init_app(app)
     limiter.init_app(app)
+    mail.init_app(app)
     
     # blueprints
     from app.auth import auth_bp
