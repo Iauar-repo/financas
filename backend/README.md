@@ -4,6 +4,8 @@ Este é um backend construído com **Flask**, focado em autenticação segura us
 
 O projeto foi estruturado com foco em **escalabilidade**, **manutenibilidade**, **separação de responsabilidades**, e é ideal para APIs modernas que exigem controle de login, proteção de rotas, gerenciamento de tokens e auditoria de sessão.
 
+[Documentação da API](api.md)
+
 ---
 
 ## 🚀 Tecnologias utilizadas
@@ -76,17 +78,6 @@ app/
   ---
 </details>
 
-## Em desenvolvimento
-### Autenticação e Login:
-- Testes automatizados com Pytest
-- OAuth 2.0 / login social
-- Autenticação por digitais
-- Rate limiting e brute-force protection
-
-### Usuários - CRUD
-- Criação/registro de usuários
-- Consulta de usuários registrados
-- Atualização de cadastro/perfil
-- Remoção/exclusão de usuários
+---
 
 > Feito por [Rodrigo Lopes](https://github.com/rodrigofl-dev) — Backend e análise de dados.
