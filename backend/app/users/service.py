@@ -19,8 +19,9 @@ def _insertUser(input):
 # helper: atualiza usuário
 def _updateUser(data, user):
     blacklist = ['ID', 'is_admin', 'email_confirmed']
-
+    #print(f"\n###################\DATA: {data.items()}\n###################\n")
     for key,val in data.items():
+        #print(f"\n###################\nCHAVE: {key}\n###################\n")
         if key not in blacklist:
             if key == 'password':
                 val = generate_password_hash(val).decode('utf-8')

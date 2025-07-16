@@ -22,8 +22,10 @@ class UpdateUserSchema(Schema):
 
     @pre_load
     def normalize_input(self, data, **kwargs):
-        data["email"] = data.get("email", "").lower()
-        data["username"] = data.get("username", "").lower()
+        a = ['email', 'username']
+        for key,_ in data.items():
+            if key in a:
+                data[key] = data.get(key).lower()
         return data
 
 user_schema = UserSchema()
