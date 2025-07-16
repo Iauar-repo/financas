@@ -24,7 +24,7 @@ def login():
 
     result, error, status = login_user(username, password, ip_address)
     if error:
-        return jsonify(message=error), status
+        return jsonify(message=error,status_code=status)
     
     return jsonify(result), status
 
@@ -35,7 +35,7 @@ def logout():
 
     result, error, status = logout_user(user_id)
     if error:
-        return jsonify(message=error), status
+        return jsonify(message=error,status_code=status)
     
     return jsonify(result), status
 
@@ -48,7 +48,7 @@ def refresh():
 
     result, error, status = rotate_refresh_token(user_id, jti, ip_address)
     if error:
-        return jsonify(message=error), status
+        return jsonify(message=error,status_code=status)
     
     return jsonify(result), status
 
@@ -59,7 +59,7 @@ def me():
 
     result, error, status = whoami(user_id)
     if error:
-        return jsonify(message=error), status
+        return jsonify(message=error,status_code=status)
     
     return jsonify(result), status
 
@@ -67,7 +67,7 @@ def me():
 def confirmEmail(token):
     result, error, status = confirmEmail_(token)
     if error:
-        return jsonify(message=error), status
+        return jsonify(message=error,status_code=status)
     
     return jsonify(result), status
 
@@ -78,6 +78,6 @@ def reenvioEmail():
 
     result, error, status = reenvioEmail_(email)
     if error:
-        return jsonify(message=error), status
+        return jsonify(message=error,status_code=status)
     
     return jsonify(result), status

@@ -5,6 +5,7 @@ from app.users.service import listUsers_, createUser_, updateUser_, deleteUser_
 from app.users import users_bp
 from app.auth.utils import admin_required, owner_or_admin_required
 from app.extensions import limiter
+from app.users.schemas import updateUser_schema
 
 # GET  /api/users  Listar usuários
 @users_bp.get('/')
@@ -25,7 +26,7 @@ def createUser():
     
     result, error, status = createUser_(input)
     if error:
-        return jsonify(message=error), status
+        return jsonify(message=error,status_code=status)
     
     return jsonify(result), status
 
