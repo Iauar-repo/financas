@@ -21,24 +21,26 @@ A aplicação foi projetada para ser modular, segura, fácil de manter, e modern
 
 ## 📁 Estrutura de diretórios
 
+
 app/
-├── (auth)/ # Telas públicas: login, register, forgot password
-│ ├── login.tsx
-│ ├── register.tsx
-│ └── forgot-password.tsx
-├── (tabs)/ # Telas privadas (protegidas por autenticação)
-│ ├── index.tsx # Dashboard principal
-│ ├── profile.tsx # Tela de perfil do usuário (edição via modal)
-│ ├── transactions.tsx
-│ ├── charts.tsx
-│ └── debug.tsx # Tela de debug de autenticação/tokens
-├── _layout.tsx # Root Layout (Provider de Auth)
-├── components/ # Componentes reutilizáveis (botões, inputs, etc.)
-├── constants/ # Constantes globais (cores, config)
-├── services/ # Serviços de API: userService, authService, tokenService, api
-├── hooks/ # Hooks customizados: useAuth, useColorScheme, etc.
-├── utils/ # Helpers/utilitários: formatters, validation
-└── assets/ # Imagens, ícones (profile-placeholder, etc.)
+├── (auth)/                  # Telas públicas: login, register, forgot password
+│   ├── login.tsx
+│   ├── register.tsx
+│   └── forgot-password.tsx
+├── (tabs)/                  # Telas privadas (protegidas por autenticação)
+│   ├── index.tsx            # Dashboard principal
+│   ├── profile.tsx          # Tela de perfil do usuário (edição via modal)
+│   ├── transactions.tsx     # Tela de transações (placeholder) 
+│   ├── charts.tsx           # Tela de gráficos (placeholder) 
+│   └── debug.tsx            # Tela de debug de autenticação/tokens
+├── _layout.tsx              # Root Layout (Provider de Auth)
+├── components/              # Componentes reutilizáveis (botões, inputs, etc.)
+├── constants/               # Constantes globais (cores, config)
+├── services/                # Serviços de API: userService, authService, tokenService, api
+├── hooks/                   # Hooks customizados: useAuth, useColorScheme, etc.
+├── utils/                   # Helpers/utilitários: formatters, validation
+└── assets/                  # Imagens, ícones (profile-placeholder, etc.)
+
 
 ---
 
@@ -50,7 +52,7 @@ app/
   - Contexto global de autenticação com React Context + Hooks
   - Tokens armazenados de forma segura (Expo Secure Store)
   - Login, logout, e refresh automáticos (com controle de sessão)
-  - Proteção total das rotas (telas em `(tabs)` só acessíveis autenticado)
+  - Proteção total das rotas (telas em `(tabs)` só acessíveis se autenticado)
   - Busca de id do usuário via `/api/auth/me` (sempre autenticado)
   - Consulta e edição de dados completos via `/api/users/:id` (com token)
   - Edição de perfil feita via PATCH `/api/users/:id`, seguindo boas práticas REST
@@ -84,7 +86,6 @@ app/
 ## ✨ Padrões e boas práticas
 
 - Tokens nunca expostos em tela (mascarados na debug)
-- Não há duplicação de serviços (um único `userService`)
 - Nenhum userId salvo localmente — sempre obtido via `/me` para máxima segurança
 - Tipagem forte com TypeScript em todos serviços e componentes
 - Separação de lógica de negócio, UI e utilitários
@@ -113,7 +114,7 @@ Sinta-se à vontade para abrir issues, sugerir melhorias ou enviar PRs!
 
 ---
 
-> Feito por [Seu Nome] — Frontend mobile & UX.
+> Feito por Rath09 — Frontend mobile & UX.
 
 ---
 
