@@ -146,10 +146,7 @@ export default function DebugScreen() {
       <Text>
         {profile ? JSON.stringify(profile, null, 2) : 'N/A'}
       </Text>
-      <Text style={[styles.header, { marginTop: 30 }]}>Profile Info</Text>
-      <Text>
-        {profile ? JSON.stringify(profile, null, 2) : 'N/A'}
-      </Text>
+    
       <Text style={[styles.header, { marginTop: 30 }]}>App Info</Text>
       <Text>Platform: {Platform.OS}</Text>
       <Text>App Version: {appVersion}</Text>
