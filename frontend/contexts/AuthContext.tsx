@@ -13,6 +13,7 @@ export interface AuthContextProps {
   token: string | null;
   signIn: (username: string, password: string) => Promise<void>;
   signOut: () => Promise<void>;
+  refreshAuth: () => Promise<void>;  // <- ADD THIS
 }
 
 const AuthContext = createContext<AuthContextProps>({
@@ -21,6 +22,7 @@ const AuthContext = createContext<AuthContextProps>({
   token: null,
   signIn: async () => {},
   signOut: async () => {},
+  refreshAuth: async () => {},       // <- ADD THIS
 });
 
 export { AuthContext };
@@ -32,33 +34,34 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   useEffect(() => {
     const loadAuthData = async () => {
       try {
-        // Will throw if token is invalid or cannot be refreshed.
         await validateToken();
-        // If validation succeeded, we have a valid token in SecureStore.
         const currentToken = await getToken();
         setToken(currentToken);
       } catch (e) {
-        // Any error means we are not authenticated. Clean up.
         await logoutService();
         setToken(null);
       } finally {
         setIsLoading(false);
       }
     };
-
     loadAuthData();
   }, []);
+
+  const refreshAuth = async () => {
+    const currentToken = await getToken();
+    setToken(currentToken);
+  };
 
   const signIn = async (username: string, password: string) => {
     const data = await loginService(username, password);
     setToken(data.access_token); 
-    router.replace('/(tabs)'); // Redirect to main app after login
+    router.replace('/(tabs)');
   };
 
   const signOut = async () => {
     await logoutService();
     setToken(null);
-    router.replace('/login'); // Redirect to login after logout
+    router.replace('/login');
   };
 
   return (
@@ -69,6 +72,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         token,
         signIn,
         signOut,
+        refreshAuth,     // <- ADD THIS
       }}>
       {children}
     </AuthContext.Provider>

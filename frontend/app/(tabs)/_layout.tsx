@@ -19,6 +19,6 @@ export default function ProtectedTabsLayout() {
   }
 
   return (
-    <Tabs screenOptions={{ headerShown: true }} />
+    <Tabs screenOptions={{ headerShown: false }} />
   );
 }

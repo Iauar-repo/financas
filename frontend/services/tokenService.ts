@@ -4,7 +4,10 @@ import { API_URL } from '@/constants/config';
 
 // Salva os tokens
 export async function saveTokens(access: string, refresh: string | null | undefined) {
-  console.log('Salvando tokens:', { access, refresh });
+  // Limpa tokens antigos antes de salvar novos
+  await SecureStore.deleteItemAsync('access_token');
+  await SecureStore.deleteItemAsync('refresh_token');
+  
   if (typeof access !== 'string') {
     // É uma boa prática garantir que o token de acesso seja válido antes de armazenar.
     throw new Error('O token de acesso recebido é inválido.');

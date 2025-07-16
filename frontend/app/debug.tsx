@@ -1,91 +1,167 @@
 // app/(tabs)/debug.tsx
 import React, { useEffect, useState } from 'react';
-import { View, Text, Button, ScrollView, StyleSheet, Platform } from 'react-native';
+import { View, Text, Button, ScrollView, StyleSheet, Platform, Alert } from 'react-native';
 import * as SecureStore from 'expo-secure-store';
 import Constants from 'expo-constants';
 import { useAuth } from '@/hooks/useAuth';
-import { getUserProfile } from '@/services/userProfileService';
+import { getCurrentUserInfo } from '@/services/userService';
 import { clearRememberedCredentials } from '@/services/credentialsService';
-import { saveTokens } from '@/services/tokenService';
-import { API_URL } from '@/constants/config';
-const { signIn } = useAuth();
-// This is a debug screen to show authentication and token details.
-import { Alert } from 'react-native';
 import { login } from '@/services/authService';
+import { saveTokens, logout as tokenLogout } from '@/services/tokenService';
+import { apiFetch } from '@/services/api';
+
+function maskToken(token?: string | null) {
+  if (!token) { return 'N/A'; }
+  return `${token.slice(0, 4)}...${token.slice(-4)}`;
+}
+
+function getTokenExp(token?: string | null) {
+  if (!token) { return null; }
+  try {
+    const [, payload] = token.split('.');
+    if (!payload) { return null; }
+    const { exp } = JSON.parse(atob(payload.replace(/-/g, '+').replace(/_/g, '/')));
+    if (!exp) { return null; }
+    return new Date(exp * 1000).toLocaleString();
+  } catch {
+    return null;
+  }
+}
 
 export default function DebugScreen() {
-  const { signOut, isAuthenticated, isLoading, token } = useAuth();
+  const { signIn, signOut, isAuthenticated, isLoading } = useAuth();
   const [accessToken, setAccessToken] = useState<string | null>(null);
   const [refreshToken, setRefreshToken] = useState<string | null>(null);
   const [profile, setProfile] = useState<any>(null);
-  const [refreshToken2, setRefreshToken2] = useState<string | null>(null);
+
+  // Robust app version string
+  const appVersion =
+    Constants.expoConfig?.version ||
+    Constants.manifest?.version ||
+    Constants.expoConfig?.runtimeVersion ||
+    Constants.nativeAppVersion ||
+    'Unknown';
+
+  const reloadData = async () => {
+    setAccessToken(await SecureStore.getItemAsync('access_token'));
+    setRefreshToken(await SecureStore.getItemAsync('refresh_token'));
+
+    try {
+      // Step 1: Get user id from /api/auth/me
+      const me = await apiFetch('/api/auth/me') as { id: number; nickname: string };
+      // Step 2: Fetch full profile for that id
+      const prof = await getCurrentUserInfo();
+      setProfile(prof);
+    } catch {
+      setProfile(null);
+    }
+  };
 
   useEffect(() => {
-    (async () => {
-      setAccessToken(await SecureStore.getItemAsync('access_token'));
-      setRefreshToken(await SecureStore.getItemAsync('refresh_token'));
-      try {
-        const prof = await getUserProfile();
-        setProfile(prof);
-      } catch (e) {
-        setProfile(null);
-      }
-    })();
-  }, []);
+    reloadData();
+  }, [isAuthenticated]);
 
-  
-const refresh_token2 = 'your_refresh_token_here'; // Use a fixed refresh token for debugging
-
-
-const handleLogin = async () => {
-    // if (!username.trim() || !password.trim()) {
-      // Alert.alert('Erro', 'Por favor, preencha todos os campos.');
-      const username = 'Rath'; // Use a fixed username for debugging
-      const password = 'admin'; // Use a fixed password for debugging
-    const data = login(username, password);
-    setRefreshToken2(refresh_token2);
-    setAccessToken(data.access_Token); // Use a fixed access token for debugging
-    
+  const handleLogin = async () => {
+    const username = 'Rath';
+    const password = 'admin';
     try {
       await signIn(username, password);
-
-      } catch (error) {
-      console.error('Erro de Login:', error);
-      if (error instanceof Error) {
-        Alert.alert('Falha no Login', error.message);
-      } else {
-        Alert.alert('Erro de Conexão', 'Não foi possível conectar ao servidor. Verifique sua conexão com a internet e tente novamente.');
-      }
+      Alert.alert('Success', 'Logged in and navigated!');
+    } catch (error) {
+      handleLoginError(error);
     }
+  };
 
-      return;
+  const handleSimulateLogin = async () => {
+    const username = 'Rath';
+    const password = 'admin';
+    try {
+      const data = await login(username, password);
+      await saveTokens(data.access_token, data.refresh_token);
+      await reloadData();
+      Alert.alert('Simulate Login', 'Tokens and profile updated (no navigation).');
+    } catch (error) {
+      handleLoginError(error);
     }
-  
+  };
+
+  const handleClearRemembered = async () => {
+    await clearRememberedCredentials();
+    await tokenLogout();
+    Alert.alert('Credentials Cleared', 'All credentials and tokens have been removed.');
+    reloadData();
+  };
+
+  function handleLoginError(error: any) {
+    console.error('Login Error:', error);
+    if (error instanceof Error) {
+      Alert.alert('Login Failed', error.message);
+    } else {
+      Alert.alert(
+        'Connection Error',
+        'Could not connect to the server. Please check your internet connection and try again.'
+      );
+    }
+  }
+
   return (
     <ScrollView contentContainerStyle={styles.container}>
       <Text style={styles.title}>Debug Screen</Text>
-      <Text>Platform: {Platform.OS}</Text>
-      <Text>App Version: {Constants.manifest?.version || 'N/A'}</Text>
-      <Text>API URL: {Constants.expoConfig?.extra?.API_URL || 'N/A'}</Text>
-      <Text>isAuthenticated: {String(isAuthenticated)}</Text>
-      <Text>isLoading: {String(isLoading)}</Text>
-      <Text>access_token: {accessToken?.slice(0, 12)}...{accessToken?.slice(-12)}</Text>
-      <Text>refresh_token: {refreshToken2?.slice(0, 12)}...{refreshToken2?.slice(-12)}</Text>
-      <Text>User profile: {profile ? JSON.stringify(profile) : 'N/A'}</Text>
+      <Text style={styles.header}>Auth Info</Text>
+      {/* <Text>isAuthenticated: {String(isAuthenticated)}</Text>
+      <Text>isLoading: {String(isLoading)}</Text> */}
+      <Text>
+        access_token: {maskToken(accessToken)}
+        {accessToken && (
+          <>
+            {'\n'}exp: {getTokenExp(accessToken) || 'N/A'}
+          </>
+        )}
+      </Text>
+      <Text>
+        refresh_token: {maskToken(refreshToken)}
+        {refreshToken && (
+          <>
+            {'\n'}exp: {getTokenExp(refreshToken) || 'N/A'}
+          </>
+        )}
+      </Text>
       <View style={{ marginTop: 20 }}>
-        <Button title="Login" onPress={handleLogin} />
-      </View>
-      <View style={{ marginTop: 20 }}>
-        <Button title="Logout" onPress={signOut} />
+        <Button title="Login (With Navigation)" onPress={handleLogin} disabled={isLoading} />
       </View>
       <View style={{ marginTop: 10 }}>
-        <Button title="Clear Remembered Credentials" onPress={clearRememberedCredentials} />
+        <Button title="Simulate Login (No Navigation)" onPress={handleSimulateLogin} disabled={isLoading} />
       </View>
+      <View style={{ marginTop: 10 }}>
+        <Button title="Logout" onPress={signOut} disabled={isLoading} />
+      </View>
+      <View style={{ marginTop: 10 }}>
+        <Button title="Clear Credentials" onPress={handleClearRemembered} disabled={isLoading} />
+      </View>
+      <View style={{ marginTop: 20 }}>
+        <Button title="Refresh Data" onPress={reloadData} disabled={isLoading} />
+      </View>
+
+      <Text style={[styles.header, { marginTop: 30 }]}>Profile Info</Text>
+      <Text>
+        {profile ? JSON.stringify(profile, null, 2) : 'N/A'}
+      </Text>
+      <Text style={[styles.header, { marginTop: 30 }]}>Profile Info</Text>
+      <Text>
+        {profile ? JSON.stringify(profile, null, 2) : 'N/A'}
+      </Text>
+      <Text style={[styles.header, { marginTop: 30 }]}>App Info</Text>
+      <Text>Platform: {Platform.OS}</Text>
+      <Text>App Version: {appVersion}</Text>
+      <Text>expoConfig.version: {Constants.expoConfig?.version || 'N/A'}</Text>
+      <Text>manifest.version: {Constants.manifest?.version || 'N/A'}</Text>
+      <Text>nativeAppVersion: {Constants.nativeAppVersion || 'N/A'}</Text>
     </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
   container: { padding: 20, alignItems: 'flex-start' },
-  title: { fontWeight: 'bold', fontSize: 18, marginBottom: 10 }
+  title: { fontWeight: 'bold', fontSize: 18, marginBottom: 10 },
+  header: { fontWeight: 'bold', marginTop: 20, marginBottom: 6 },
 });
