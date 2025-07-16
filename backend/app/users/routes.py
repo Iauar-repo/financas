@@ -26,7 +26,7 @@ def createUser():
     
     result, error, status = createUser_(input)
     if error:
-        return jsonify(message=error,status_code=status)
+        return jsonify(message=error), status
     
     return jsonify(result), status
 
