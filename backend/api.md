@@ -72,7 +72,6 @@ Valida o `access_token` e retorna os dados do usuário autenticado.
 ```json
 {
     "id": 1,
-    "nickname": "username",
     "message": "Autenticado"
 }
 ```
@@ -83,11 +82,9 @@ Valida o `access_token` e retorna os dados do usuário autenticado.
 Valida o token de confirmação de email.
 
 #### Response
-```json
-{
-    "message": "Email confirmado com sucesso"
-}
-```
+
+Retorna página HTML **email_confirmado.html** ou **email_error.html**
+
 ---
 
 ### POST `/api/auth/reenvio`
@@ -151,12 +148,14 @@ Lista todos os usuários (Admin only).
   [
     {
         "created_at": "2025-07-14T05:48:03",
+        "email": "mail@domain.com",
         "id": 1,
         "name": "Real Name",
         "username": "user1"
     },
     {
         "created_at": "2025-07-14T05:48:04",
+        "email": "mail@domain.com",
         "id": 2,
         "name": "Real Name",
         "username": "user2"
@@ -178,6 +177,7 @@ Lista um usuário específico (Admin or Owner only).
 
 {
     "created_at": "2025-07-14T05:48:04",
+    "email": "mail@domain.com",
     "id": 1,
     "name": "Real Name",
     "username": "user1"
@@ -204,6 +204,7 @@ Atualiza dados do usuário especificado (Admin or Owner only).
 ```json
 {
     "created_at": "2025-07-14T05:48:04",
+    "email": "mail@domain.com",
     "id": 1,
     "name": "Novo Nome",
     "username": "user1"

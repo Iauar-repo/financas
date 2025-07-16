@@ -17,6 +17,7 @@ class Config:
     DB_HOST = os.getenv('DB_HOST')
     SQLALCHEMY_DATABASE_URI = f'{DB_ENGINE}://{DB_USER}:{DB_PASS}@{DB_HOST}/{DB_NAME}'
     SQLALCHEMY_TRACK_MODIFICATIONS = False
+    #RATELIMIT_STORAGE_URL = os.getenv("REDIS_URL") # descomentar essa linha no Deploy
     
     # JWT
     JWT_SECRET_KEY = os.getenv('JWT_SECRET_KEY')
