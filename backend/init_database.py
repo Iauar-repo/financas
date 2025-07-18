@@ -103,6 +103,51 @@ USERvalues = [
             1,
             datetime.now(timezone.utc).replace(tzinfo=None),
             1
+      ),
+      (
+            "User 1",
+            "user1@gmail.com",
+            "user1",
+            generate_password_hash("user1").decode('utf-8'),
+            0,
+            datetime.now(timezone.utc).replace(tzinfo=None),
+            1
+      ),
+      (
+            "User 2",
+            "user2@gmail.com",
+            "user2",
+            generate_password_hash("user2").decode('utf-8'),
+            0,
+            datetime.now(timezone.utc).replace(tzinfo=None),
+            1
+      ),
+      (
+            "User 3",
+            "user3@gmail.com",
+            "user3",
+            generate_password_hash("user3").decode('utf-8'),
+            0,
+            datetime.now(timezone.utc).replace(tzinfo=None),
+            1
+      ),
+      (
+            "User 4",
+            "user4@gmail.com",
+            "user4",
+            generate_password_hash("user4").decode('utf-8'),
+            0,
+            datetime.now(timezone.utc).replace(tzinfo=None),
+            1
+      ),
+      (
+            "User 5",
+            "user5@gmail.com",
+            "user5",
+            generate_password_hash("user5").decode('utf-8'),
+            0,
+            datetime.now(timezone.utc).replace(tzinfo=None),
+            1
       )
 ]
 cursor.executemany(USERquery, USERvalues)

@@ -1,6 +1,7 @@
 from flask import current_app as app
 from marshmallow import ValidationError
 from flask_bcrypt import generate_password_hash
+import requests
 
 from app.extensions import db
 from app.models import Users
@@ -25,6 +26,15 @@ def _updateUser(data, user):
                 val = generate_password_hash(val).decode('utf-8')
             setattr(user, key, val)
 
+# helper: verifica token de recaptcha
+def verify_recaptcha(token):
+    secret_key = app.config['RECAPTCHA_SECRET_KEY']
+    url = 'https://www.google.com/recaptcha/api/siteverify'
+    payload = {'secret': secret_key, 'response': token}
+    response = requests.post(url, data=payload)
+    result = response.json()
+    return result.get('success', False)
+
 # main: dump Users
 def listUsers_(id: int = 0):
     try:
@@ -46,6 +56,10 @@ def listUsers_(id: int = 0):
 # main: new User
 def createUser_(input):
     try:
+        recaptcha_token = input.get('recaptcha_token')
+        if not recaptcha_token or not verify_recaptcha(recaptcha_token):
+            return {'message': 'reCAPTCHA inválido ou ausente'}, None, 400
+
         data = createUser_schema.load(input)
         _insertUser(data)
         db.session.commit()

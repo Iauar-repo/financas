@@ -122,7 +122,8 @@ Cria um novo usuário.
     "name":"Real Name",
     "username":"xyz",
     "password":"pass",
-    "email":"xyz@domain.com"
+    "email":"xyz@domain.com",
+    "recaptcha_token":"token"
 }
 ```
 
