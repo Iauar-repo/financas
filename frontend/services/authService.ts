@@ -1,45 +1,40 @@
-// services/authService.ts
+import { AuthResponse } from '@/types/api';
 import { apiFetch } from './api';
-import { API_URL } from '@/constants/config';
 import { saveTokens } from './tokenService';
 
-// Login no backend
+interface LoginResponse {
+  access_token: string;
+  refresh_token: string | null;
+  [key: string]: any;
+}
+
 export async function login(username: string, password: string) {
-  const res = await fetch(`${API_URL}/api/auth/login`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ username, password }),
-  });
+  const res = await apiFetch<AuthResponse>(
+    '/api/auth/login',
+    {
+      method: 'POST',
+      body: JSON.stringify({ username, password }),
+    },
+    true
+  );
 
-  const data = await res.json();
-  if (!res.ok) throw new Error(data.message || 'gay no login');
- 
-  await saveTokens(data.access_token, data.refresh_token);
-
-  return data;
+  await saveTokens(res.access_token, res.refresh_token);
+  return res;
 }
 
-
-// Registro no backend
 export async function register(username: string, email: string, password: string) {
-  const res = await fetch(`${API_URL}/api/auth/register`, { // Assumindo que o endpoint é /api/register
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ username, email, password }),
-  });
+  const res = await apiFetch<AuthResponse>(
+    '/api/auth/register',
+    {
+      method: 'POST',
+      body: JSON.stringify({ username, email, password }),
+    },
+    true
+  );
 
-  const data = await res.json();
-  if (!res.ok) throw new Error(data.message || 'Falha no registro');
-
-  return data;
+  return res;
 }
 
-// Valida o token existente
 export async function validateToken() {
-  // Faz uma chamada para um endpoint protegido.
-  // A lógica em `apiFetch` cuidará da renovação do token se necessário.
-  // Se a chamada falhar (mesmo após a tentativa de renovação), um erro será lançado.
-  // Assumimos um endpoint como /api/me ou /api/validate-token que requer autenticação.
-  // Não precisamos dos dados de retorno, apenas que a chamada seja bem-sucedida.
   await apiFetch('/api/access_token', { method: 'GET' });
 }

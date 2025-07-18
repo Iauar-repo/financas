@@ -2,12 +2,15 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, ActivityIndicator, Image, StyleSheet, ScrollView, Button, Alert, Modal, TextInput } from 'react-native';
 import profilePlaceholder from '@/assets/images/profile-placeholder.png';
 import { getCurrentUserInfo, getUserProfile, updateUserProfile, UserProfile } from '@/services/userService';
+import { useAuth } from '@/hooks/useAuth';
+
 
 export default function ProfileScreen() {
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [userId, setUserId] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
-
+  const { signOut } = useAuth();
+  
   // Modal state
   const [showEdit, setShowEdit] = useState(false);
   const [editName, setEditName] = useState('');
@@ -94,9 +97,8 @@ export default function ProfileScreen() {
       <Text style={styles.value}>{profile.email || 'N/A'}</Text>
       <Text style={styles.label}>Created At:</Text>
       <Text style={styles.value}>{profile.created_at ? new Date(profile.created_at).toLocaleString() : 'N/A'}</Text>
-      {/* For debugging: */}
-      {/* <Text>{JSON.stringify(profile, null, 2)}</Text> */}
       <Button title="Edit Profile" onPress={openEdit} disabled={loading || saving} />
+      <Button title="Logout" onPress={signOut} disabled={loading || saving} />
 
       {/* EDIT MODAL */}
       <Modal visible={showEdit} animationType="slide" transparent>
