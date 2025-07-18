@@ -1,4 +1,4 @@
-from flask import request, jsonify
+from flask import request, jsonify, render_template
 from flask_jwt_extended import jwt_required, get_jwt_identity, get_jwt
 
 from app.auth.service import (
@@ -24,7 +24,7 @@ def login():
 
     result, error, status = login_user(username, password, ip_address)
     if error:
-        return jsonify(message=error,status_code=status)
+        return jsonify(message=error), status
     
     return jsonify(result), status
 
@@ -35,7 +35,7 @@ def logout():
 
     result, error, status = logout_user(user_id)
     if error:
-        return jsonify(message=error,status_code=status)
+        return jsonify(message=error), status
     
     return jsonify(result), status
 
@@ -48,7 +48,7 @@ def refresh():
 
     result, error, status = rotate_refresh_token(user_id, jti, ip_address)
     if error:
-        return jsonify(message=error,status_code=status)
+        return jsonify(message=error), status
     
     return jsonify(result), status
 
@@ -59,17 +59,17 @@ def me():
 
     result, error, status = whoami(user_id)
     if error:
-        return jsonify(message=error,status_code=status)
+        return jsonify(message=error), status
     
     return jsonify(result), status
 
 @auth_bp.get("/confirm/<token>")
 def confirmEmail(token):
-    result, error, status = confirmEmail_(token)
+    error, status = confirmEmail_(token)
     if error:
-        return jsonify(message=error,status_code=status)
+        return render_template("email_error.html", error=error)
     
-    return jsonify(result), status
+    return render_template("email_confirmed.html")
 
 @auth_bp.post("/reenvio")
 def reenvioEmail():
@@ -78,6 +78,6 @@ def reenvioEmail():
 
     result, error, status = reenvioEmail_(email)
     if error:
-        return jsonify(message=error,status_code=status)
+        return jsonify(message=error), status
     
     return jsonify(result), status

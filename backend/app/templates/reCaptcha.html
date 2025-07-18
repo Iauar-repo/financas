@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Test reCAPTCHA</title>
+    <script src="https://www.google.com/recaptcha/api.js" async defer></script>
+  </head>
+  <body>
+    <form id="form">
+      <div class="g-recaptcha" data-sitekey="6Lfc-IYrAAAAANQD74qo0GJa_KGnk-dmnFyYi6Yq" data-callback="onSubmit"></div>
+      <br />
+      <button type="submit">Obter token</button>
+    </form>
+
+    <script>
+      document.getElementById('form').addEventListener('submit', function(e) {
+        e.preventDefault();
+        grecaptcha.execute();
+      });
+
+      function onSubmit(token) {
+        //alert('Seu token: ' + token);
+        console.log('Sey token: ' + token);
+      }
+    </script>
+  </body>
+</html>

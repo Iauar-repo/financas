@@ -17,6 +17,7 @@ class Config:
     DB_HOST = os.getenv('DB_HOST')
     SQLALCHEMY_DATABASE_URI = f'{DB_ENGINE}://{DB_USER}:{DB_PASS}@{DB_HOST}/{DB_NAME}'
     SQLALCHEMY_TRACK_MODIFICATIONS = False
+    #RATELIMIT_STORAGE_URL = os.getenv("REDIS_URL") # descomentar essa linha no Deploy
     
     # JWT
     JWT_SECRET_KEY = os.getenv('JWT_SECRET_KEY')
@@ -34,6 +35,10 @@ class Config:
     MAIL_USERNAME = os.getenv("MAIL_USERNAME")
     MAIL_PASSWORD = os.getenv("MAIL_PASSWORD")
     MAIL_DEFAULT_SENDER = os.getenv("MAIL_DEFAULT_SENDER")
+
+    # reCaptcha
+    RECAPTCHA_SITE_KEY = os.getenv("RECAPTCHA_SITE_KEY")
+    RECAPTCHA_SECRET_KEY = os.getenv("RECAPTCHA_SECRET_KEY")
 
 class DevelopmentConfig(Config):
     DEBUG = True

@@ -115,7 +115,6 @@ def whoami(user_id: int):
         
         return {
             "id": user.id,
-            "nickname": user.username,
             "message": 'Autenticado'
         }, None, 200
     
@@ -129,21 +128,21 @@ def confirmEmail_(token):
         email = confirm_token(token)
         if not email:
             app.logger.error(f"[ConfirmEmail] Token inválido ou expirado")
-            return None, 'Token inválido ou expirado', 404
+            return 'Token inválido ou expirado', 404
 
         user = Users.query.filter_by(email=email).first()
         if not user:
             app.logger.error(f"[ConfirmEmail] Usuário não existe. Email: {email}")
-            return None, 'Usuário não existe', 404
+            return 'Usuário não existe', 404
 
         user.email_confirmed = 1
         db.session.commit()
 
-        return {"message":"Email confirmado com sucesso"}, None, 200
+        return None, 200
     
     except Exception as e:
         app.logger.error(f"[ConfirmEmail] Erro desconhecido ao confirmar email: {str(e)}")
-        return None, f"Erro desconhecido: {str(e)}", 500
+        return f"Erro desconhecido: {str(e)}", 500
 
 # main: reenvio confirmação de email
 def reenvioEmail_(email):

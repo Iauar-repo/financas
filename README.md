@@ -18,7 +18,7 @@ Sistema completo para gerenciamento financeiro pessoal com:
 ## 🔗 Acesso Rápido
 | Seção       | Descrição                          | Link |
 |-------------|------------------------------------|------|
-| **🖥️ Frontend** | Interface moderna e responsiva | [Ver Detalhes](frontend/readme.md) |
+| **🖥️ Frontend** | Typescript + React Native (Expo Go) | [Ver Detalhes](frontend/readme.md) |
 | **📡 Backend** | API RESTful | [Ver Detalhes](backend/README.md) |
 
 ---
@@ -28,8 +28,6 @@ Sistema completo para gerenciamento financeiro pessoal com:
 ### 🟦 Frontend
 <p align="left">
   <img src="https://img.shields.io/badge/React-61DAFB?logo=react&logoColor=black" alt="React">
-  <img src="https://img.shields.io/badge/TailwindCSS-06B6D4?logo=tailwind-css&logoColor=white" alt="Tailwind">
-  <img src="https://img.shields.io/badge/Chart.js-FF6384?logo=chart.js&logoColor=white" alt="Chart.js">
   <img src="https://img.shields.io/badge/Expo_Go-000020?logo=expo&logoColor=white" alt="Expo">
 </p>
 

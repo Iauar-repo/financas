@@ -1,10 +1,11 @@
 from flask import current_app as app
 from marshmallow import ValidationError
 from flask_bcrypt import generate_password_hash
+import requests
 
 from app.extensions import db
 from app.models import Users
-from app.users.schemas import user_schema, users_schema, updateUser_schema
+from app.users.schemas import listUser_schema, listUsers_schema, updateUser_schema, createUser_schema
 from app.auth.utils import send_confirmation_email
 
 # helper: insert novo usuário
@@ -19,13 +20,20 @@ def _insertUser(input):
 # helper: atualiza usuário
 def _updateUser(data, user):
     blacklist = ['ID', 'is_admin', 'email_confirmed']
-    #print(f"\n###################\DATA: {data.items()}\n###################\n")
     for key,val in data.items():
-        #print(f"\n###################\nCHAVE: {key}\n###################\n")
         if key not in blacklist:
             if key == 'password':
                 val = generate_password_hash(val).decode('utf-8')
             setattr(user, key, val)
+
+# helper: verifica token de recaptcha
+def verify_recaptcha(token):
+    secret_key = app.config['RECAPTCHA_SECRET_KEY']
+    url = 'https://www.google.com/recaptcha/api/siteverify'
+    payload = {'secret': secret_key, 'response': token}
+    response = requests.post(url, data=payload)
+    result = response.json()
+    return result.get('success', False)
 
 # main: dump Users
 def listUsers_(id: int = 0):
@@ -36,10 +44,10 @@ def listUsers_(id: int = 0):
                 app.logger.error(f"[DumpUser] Usuário não existe. ID: {id}")
                 return None, "Usuário não existe", 404
             
-            return user_schema.dump(user), None, 200
+            return listUser_schema.dump(user), None, 200
         
         users = Users.query.all()
-        return users_schema.dump(users), None, 200
+        return listUsers_schema.dump(users), None, 200
     
     except Exception as e:
         app.logger.error(f"[DumpUser] Erro desconhecido ao buscar infos do usuário: {str(e)}")
@@ -48,7 +56,11 @@ def listUsers_(id: int = 0):
 # main: new User
 def createUser_(input):
     try:
-        data = user_schema.load(input)
+        recaptcha_token = input.get('recaptcha_token')
+        if not recaptcha_token or not verify_recaptcha(recaptcha_token):
+            return {'message': 'reCAPTCHA inválido ou ausente'}, None, 400
+
+        data = createUser_schema.load(input)
         _insertUser(data)
         db.session.commit()
 
@@ -79,7 +91,7 @@ def updateUser_(input, user_id):
         _updateUser(data, user)
         db.session.commit()
         
-        return user_schema.dump(user), None, 200
+        return listUser_schema.dump(user), None, 200
     
     except ValidationError as e:
         db.session.rollback()
