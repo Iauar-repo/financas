@@ -1,83 +1,75 @@
-from flask import request, jsonify, render_template
+from flask import request, jsonify, render_template, url_for
 from flask_jwt_extended import jwt_required, get_jwt_identity, get_jwt
-
+from app.extensions import oauth
 from app.auth.service import (
-    login_user,
-    logout_user,
-    rotate_refresh_token,
-    whoami,
+    login_,
+    logout_,
+    refreshTokens_,
+    me_,
     confirmEmail_,
-    reenvioEmail_
+    resendEmail_
 )
+from app.core.responses import response
 from app.auth import auth_bp
 
-@auth_bp.get('/health')
-def health():
-    return jsonify(message="OK"), 200
-
+# POST  /api/auth/login  Login
 @auth_bp.post('/login')
 def login():
     data = request.get_json()
-    username = data.get('username')
-    password = data.get('password')
-    ip_address = request.remote_addr
+    ip = request.remote_addr
+    key,data = login_(data, ip)
 
-    result, error, status = login_user(username, password, ip_address)
-    if error:
-        return jsonify(message=error), status
-    
-    return jsonify(result), status
+    return response(key,data if data else None)
 
+# POST  /api/auth/logout  Logout
 @auth_bp.post("/logout")
 @jwt_required(refresh=True)
 def logout():
     user_id = int(get_jwt_identity())
+    key,data = logout_(user_id)
 
-    result, error, status = logout_user(user_id)
-    if error:
-        return jsonify(message=error), status
-    
-    return jsonify(result), status
+    return response(key,data if data else None)
 
+# POST  /api/auth/refresh  Refresh tokens
 @auth_bp.post("/refresh")
 @jwt_required(refresh=True)
-def refresh():
+def refreshTokens():
     jti = get_jwt()["jti"]
     user_id = int(get_jwt_identity())
-    ip_address = request.remote_addr
+    ip = request.remote_addr
+    key,data = refreshTokens_(jti, user_id, ip)
 
-    result, error, status = rotate_refresh_token(user_id, jti, ip_address)
-    if error:
-        return jsonify(message=error), status
-    
-    return jsonify(result), status
+    return response(key,data if data else None)
 
+# GET  /api/auth/me  Check user authentication
 @auth_bp.get('/me')
 @jwt_required()
 def me():
     user_id = int(get_jwt_identity())
+    key,data = me_(user_id)
 
-    result, error, status = whoami(user_id)
-    if error:
-        return jsonify(message=error), status
-    
-    return jsonify(result), status
+    return response(key,data if data else None)
 
+# GET  /api/auth/confirm/<token>  Confirm email registration by token
 @auth_bp.get("/confirm/<token>")
 def confirmEmail(token):
-    error, status = confirmEmail_(token)
+    error = confirmEmail_(token)
     if error:
         return render_template("email_error.html", error=error)
     
     return render_template("email_confirmed.html")
 
-@auth_bp.post("/reenvio")
-def reenvioEmail():
+# GET  /api/auth/resend  Resend email confirmation
+@auth_bp.post("/resend")
+def resendEmail():
     data = request.get_json()
     email = data.get('email')
+    key,data = resendEmail_(email)
 
-    result, error, status = reenvioEmail_(email)
-    if error:
-        return jsonify(message=error), status
-    
-    return jsonify(result), status
+    return response(key,data if data else None)
+
+# GET  /api/auth/login/google  OAuth2.0 # MOVER PARA O FRONT
+@auth_bp.get('/login/google')
+def loginGoogle():
+    redirect_uri = url_for('users.callbackGoogle', _external=True)
+    return oauth.google.authorize_redirect(redirect_uri)

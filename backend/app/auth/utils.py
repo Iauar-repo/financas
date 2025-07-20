@@ -7,7 +7,7 @@ from flask_jwt_extended import (
     get_jwt_identity
 )
 from functools import wraps
-from flask import jsonify
+from app.core.responses import response
 from itsdangerous import URLSafeTimedSerializer
 from flask import current_app as app
 from flask_mail import Message
@@ -35,7 +35,7 @@ def admin_required(fn):
         verify_jwt_in_request()
         claims = get_jwt()
         if not claims.get("is_admin"):
-            return jsonify(message="Acesso negado"), 403
+            return response("FORBIDDEN")
         return fn(*args, **kwargs)
     return wrapper
 
@@ -48,7 +48,7 @@ def owner_or_admin_required(fn):
         current_user_id = int(get_jwt_identity())
 
         if not claims.get("is_admin") and current_user_id != user_id:
-            return jsonify(message="Acesso negado"), 403
+            return response("FORBIDDEN")
 
         return fn(user_id, *args, **kwargs)
     return wrapper

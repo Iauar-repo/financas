@@ -1,6 +1,6 @@
 from flask import Flask, jsonify
 from werkzeug.exceptions import HTTPException
-from .extensions import db, jwt, cors, limiter, mail
+from .extensions import db, jwt, cors, limiter, mail, oauth
 from .config import config_dict
 from .logger import setup_logger
 
@@ -18,6 +18,17 @@ def create_app(config_name='default'):
     jwt.init_app(app)
     limiter.init_app(app)
     mail.init_app(app)
+    oauth.init_app(app)
+
+    oauth.register(
+        name='google',
+        client_id=app.config['GOOGLE_CLIENT_ID'],
+        client_secret=app.config['GOOGLE_CLIENT_SECRET'],
+        access_token_url='https://oauth2.googleapis.com/token',
+        authorize_url='https://accounts.google.com/o/oauth2/auth',
+        api_base_url='https://www.googleapis.com/oauth2/v2/',
+        client_kwargs={'scope': 'email profile'},
+    )
     
     # blueprints
     from app.auth import auth_bp
@@ -43,7 +54,6 @@ def create_app(config_name='default'):
     
     @app.errorhandler(HTTPException)
     def handle_http_exception(e):
-        # Trata erros HTTP padrão
         return jsonify({
             "error": e.name,
             "message": e.description,
@@ -52,17 +62,16 @@ def create_app(config_name='default'):
     
     @app.errorhandler(Exception)
     def handle_unexpected_error(e):
-        # Trata todos os outros erros inesperados
         app.logger.error(f"Erro inesperado: {str(e)}")
         return jsonify({
             "error": "Internal Server Error",
-            "message": "Ocorreu um erro inesperado no servidor",
+            "message": "An Unexpected Error Occurred",
             "status_code": 500
         }), 500
     
     # Verificação de variáveis de ambiente carregadas
     app.config['ENV'] = 'production' if config_name == 'prod' else 'development'
-    print(f"\n=== Configuração Carregada ===")
+    print(f"\n=== Config loaded ===")
     print(f"Tipo: {config_name}")
     print(f"ENV: {app.config['ENV']}")
     print("============================\n")

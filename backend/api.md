@@ -87,7 +87,7 @@ Retorna página HTML **email_confirmado.html** ou **email_error.html**
 
 ---
 
-### POST `/api/auth/reenvio`
+### POST `/api/auth/resend`
 
 Reenvia token de verificação de email.
 
@@ -109,7 +109,7 @@ Reenvia token de verificação de email.
 <details>
   <summary>Usuários</summary>
 
-### POST `/api/users/registro`
+### POST `/api/users/register`
 
 Cria um novo usuário.
 

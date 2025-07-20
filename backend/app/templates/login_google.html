@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8" />
+  <title>Login com Google</title>
+</head>
+<body>
+  <h2>Testar Login com Google (OAuth2)</h2>
+  <button onclick="login()">Login com Google</button>
+
+  <script>
+    function login() {
+      // Altere para o endereço real da sua API (localhost ou ngrok)
+      const backendUrl = 'http://localhost:5000'; 
+      window.location.href = backendUrl + '/api/auth/login/google';
+    }
+  </script>
+</body>
+</html>

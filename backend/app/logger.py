@@ -27,6 +27,6 @@ def setup_logger(app):
 
     app.logger = logger
 
-    # Silenciar werkzeug e outros loggers no arquivo
+    # Silence werkzeug and other loggers
     #logging.getLogger('werkzeug').disabled = True
-    #logging.getLogger().handlers.clear()  # limpa root logger
+    #logging.getLogger().handlers.clear()  # clean root logger

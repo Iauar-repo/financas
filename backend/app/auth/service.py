@@ -1,164 +1,169 @@
 from flask_bcrypt import check_password_hash
 from flask import current_app as app
-
 from app.extensions import db
 from app.models import Users, ActiveSessions, TokenBlocklist
 from app.auth.utils import generate_tokens, confirm_token, send_confirmation_email
 
 
-# helper: cria nova sessão
-def create_session(user_id: int, refresh_jti: str, ip: str):
+# helper: create a new session
+def _createSession(user_id, refresh_jti, ip):
     db.session.add(ActiveSessions(
         jti = refresh_jti,
         user_id = user_id,
         ip_address = ip
     ))
 
-# helper: revoga sessão antiga
-def revoke_old_session(user_id: int):
-    old = ActiveSessions.query.filter_by(user_id = user_id).first()
-    if old:
-        db.session.add(TokenBlocklist(
-            jti = old.jti,
-            user_id = user_id,
-            ip_address = old.ip_address,
-            created_at = old.created_at,
-            expires_at = old.expires_at
-        ))
-        db.session.delete(old)
+# helper: revoke the old session
+def _revokeOldSession(user_id, session):
+    db.session.add(TokenBlocklist(
+        jti = session.jti,
+        user_id = user_id,
+        ip_address = session.ip_address,
+        created_at = session.created_at,
+        expires_at = session.expires_at
+    ))
+    db.session.delete(session)
 
 # main: login
-def login_user(username: str, password: str, ip_address: str):
+def login_(data, ip):
     try:
+        username = data.get('username')
+        password = data.get('password')
         user = Users.query.filter_by(username=username).first()
         if not user:
-            app.logger.error(f"[Login] Usuário não existe: {username}")
-            return None, "Usuário não existe", 404
+            app.logger.error(f"[Login] User not found: {username}")
+            return "LOGIN_FAILED", None
 
         if not check_password_hash(user.password, password):
-            app.logger.error(f"[Login] Senha incorreta. User: {username}")
-            return None, "Senha incorreta", 404
+            app.logger.error(f"[Login] Wrong password. User: {username}")
+            return "LOGIN_FAILED", None
         
         if not user.email_confirmed == 1:
-            app.logger.error(f"[Login] Email não verificado: {user.email}")
-            return None, "Email não verificado", 404
+            app.logger.error(f"[Login] Email not verified: {user.email}")
+            return "FORBIDDEN", None
 
         is_admin = True if user.is_admin == 1 else False
         
-        revoke_old_session(user.id)
+        session = ActiveSessions.query.filter_by(user_id = user.id).first()
+        if session:
+            _revokeOldSession(user.id, session)
+        
         access_token, refresh_token, _, refresh_jti = generate_tokens(user.id, is_admin)
-        create_session(user.id, refresh_jti, ip_address)
+        _createSession(user.id, refresh_jti, ip)
         db.session.commit()
 
-        return {
+        return "SUCCESS", {
             "access_token": access_token,
-            "refresh_token": refresh_token,
-            "message": "Usuário logado com sucesso"
-        }, None, 200
+            "refresh_token": refresh_token
+        }
     
     except Exception as e:
         db.session.rollback()
-        app.logger.error(f"[Login] Erro desconhecido no Login: {str(e)}")
-        return None, f"Erro desconhecido: {str(e)}", 500
+        app.logger.error(f"[Login] Internal error: {str(e)}")
+        return "SERVER_ERROR", {"error":str(e)}
 
 # main: logout
-def logout_user(user_id: int):
+def logout_(user_id):
     try:
-        revoke_old_session(user_id)
+        session = ActiveSessions.query.filter_by(user_id = user_id).first()
+        if not session:
+            app.logger.error(f"[Logout] User not found. ID: {user_id} - THIS SHOULD NEVER HAPPEN")
+            return "USER_NOT_FOUND", None
+        
+        _revokeOldSession(user_id, session)
         db.session.commit()
 
-        return {
-            "message": "Usuário deslogado com sucesso"
-        }, None, 200
+        return "SUCCESS", None
 
     except Exception as e:
         db.session.rollback()
-        app.logger.error(f"[Logout] Erro desconhecido no Logout: {str(e)}")
-        return None, f"Erro desconhecido: {str(e)}", 500
+        app.logger.error(f"[Logout] Internal error: {str(e)}")
+        return "SERVER_ERROR", {"error":str(e)}
 
-# main: gera novo refresh_token
-def rotate_refresh_token(user_id: int, jti: str, ip_address: str):
+# main: make new tokens
+def refreshTokens_(jti, user_id, ip):
     try:
-        current_token = ActiveSessions.query.filter_by(jti=jti, user_id=user_id).first()
+        session = ActiveSessions.query.filter_by(jti=jti, user_id=user_id).first()
+        if not session:
+            app.logger.error(f"[Refresh Token] User not found. ID: {user_id}")
+            return "USER_NOT_FOUND", None
 
-        if current_token.ip_address != ip_address:
-            app.logger.error(f"[refresh token] IP não autorizado: {ip_address} | Esperado: {current_token.ip_address}")
-            return None, "Endereço IP não autorizado", 403
-
+        if session.ip_address != ip:
+            app.logger.error(f"[Refresh Token] IP address not authorized: {ip} | Expected: {session.ip_address}")
+            return "UNAUTHENTICATED", None
+        
         user = Users.query.filter_by(id=user_id).first()
         is_admin = True if user.is_admin == 1 else False
 
-        revoke_old_session(user_id)
+        _revokeOldSession(user_id, session)
         access_token, refresh_token, _, refresh_jti = generate_tokens(user_id, is_admin)
-        create_session(user_id, refresh_jti, ip_address)
+        _createSession(user_id, refresh_jti, ip)
         db.session.commit()
 
-        return { 
+        return "SUCCESS", { 
             "access_token": access_token,
-            "refresh_token": refresh_token,
-            "message": "Novos tokens foram gerados"
-            }, None, 200
+            "refresh_token": refresh_token
+            }
     
     except Exception as e:
         db.session.rollback()
-        app.logger.error(f"[refresh token] Erro desconhecido ao gerar novos tokens: {str(e)}")
-        return None, f"Erro desconhecido: {str(e)}", 500
+        app.logger.error(f"[Refresh Token] Internal error: {str(e)}")
+        return "SERVER_ERROR", {"error":str(e)}
 
-# main: checkagem de sessão
-def whoami(user_id: int):
+# main: ping session
+def me_(user_id):
     try:
         user = Users.query.get(user_id)
 
         if not user:
-            app.logger.error(f"[WhoamI] Usuário não existe. ID: {user_id}")
-            return None, 'Usuário não existe', 404
+            app.logger.error(f"[WhoamI] User not found. ID: {user_id}")
+            return "USER_NOT_FOUND", None
         
-        return {
-            "id": user.id,
-            "message": 'Autenticado'
-        }, None, 200
+        return "SUCCESS", {
+            "id": user.id
+        }
     
     except Exception as e:
-        app.logger.error(f"[WhoamI] Erro desconhecido ao buscar infos do usuário: {str(e)}")
-        return None, f"Erro desconhecido: {str(e)}", 500
+        app.logger.error(f"[WhoamI] Internal error: {str(e)}")
+        return "SERVER_ERROR", {"error":str(e)}
 
-# main: confirmação de email
+# main: email confirmation
 def confirmEmail_(token):
     try:
         email = confirm_token(token)
         if not email:
-            app.logger.error(f"[ConfirmEmail] Token inválido ou expirado")
-            return 'Token inválido ou expirado', 404
+            app.logger.error(f"[ConfirmEmail] Invalid token or expired")
+            return 'Token inválido ou expirado'
 
         user = Users.query.filter_by(email=email).first()
         if not user:
-            app.logger.error(f"[ConfirmEmail] Usuário não existe. Email: {email}")
-            return 'Usuário não existe', 404
+            app.logger.error(f"[ConfirmEmail] User not found. Email: {email}")
+            return 'Usuário não existe'
 
         user.email_confirmed = 1
         db.session.commit()
 
-        return None, 200
+        return None
     
     except Exception as e:
-        app.logger.error(f"[ConfirmEmail] Erro desconhecido ao confirmar email: {str(e)}")
-        return f"Erro desconhecido: {str(e)}", 500
+        app.logger.error(f"[ConfirmEmail] Internal error: {str(e)}")
+        return f"Erro desconhecido: {str(e)}"
 
-# main: reenvio confirmação de email
-def reenvioEmail_(email):
+# main: resend email confirmation
+def resendEmail_(email):
     try:
         user = Users.query.filter_by(email=email).first()
         if not user:
-            app.logger.error(f"[ReenvioEmail] Email não registrado: {email}")
-            return None, 'Email não registrado', 404
+            app.logger.error(f"[ResendEmail] Email not registered: {email}")
+            return "USER_NOT_FOUND", None
         
         if user.email_confirmed == 1:
-            return {"message":"Email já confirmado"}, None, 200
+            return "USER_ALREADY_EXISTS", None
         
         send_confirmation_email(user)
 
-        return {"message":"Email de confirmação foi reenviado"}, None, 200
+        return "SUCCESS", None
 
     except Exception as e:
-        app.logger.error(f"[ReenvioEmail] Erro desconhecido ao reenviar email: {str(e)}")
-        return None, f"Erro desconhecido: {str(e)}", 500
+        app.logger.error(f"[ResendEmail] Internal error: {str(e)}")
+        return "SERVER_ERROR", {"error":str(e)}
