@@ -1,10 +1,10 @@
-from flask import request, jsonify
+from flask import request
 from flask_jwt_extended import jwt_required
 
 from app.users.service import listUsers_, createUser_, updateUser_, deleteUser_
 from app.users import users_bp
 from app.auth.utils import admin_required, owner_or_admin_required
-from app.extensions import limiter, oauth
+from app.extensions import limiter
 from app.core.responses import response
 
 # GET  /api/users  List users
@@ -50,16 +50,3 @@ def deleteUser(user_id):
     key,data = deleteUser_(user_id)
     
     return response(key,data if data else None)
-
-# GET  /api/users/callback/google  OAuth2.0 Callback
-@users_bp.get('/callback/google')
-def callbackGoogle():
-    token = oauth.google.authorize_access_token()
-    user_info = oauth.google.get('userinfo').json()
-    # user_info => {'email':'','family_name':'','given_name':'','id':'','name':'','picture':'','verified_email':''}
-
-    #user = get_or_create_user_by_email(user_info['email'])
-
-    #jwt_token = create_jwt_token(user_id=user.id)
-
-    return jsonify({'dados': user_info, 'token':token})

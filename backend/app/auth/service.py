@@ -4,6 +4,13 @@ from app.extensions import db
 from app.models import Users, ActiveSessions, TokenBlocklist
 from app.auth.utils import generate_tokens, confirm_token, send_confirmation_email
 
+# helper: insert new user | OAuth2
+def _insertUser(input):
+    db.session.add(Users(
+        name = input.get('name'),
+        email = input.get('email'),
+        auth_provider = input.get('auth_provider')
+    ))
 
 # helper: create a new session
 def _createSession(user_id, refresh_jti, ip):
@@ -41,6 +48,10 @@ def login_(data, ip):
         if not user.email_confirmed == 1:
             app.logger.error(f"[Login] Email not verified: {user.email}")
             return "FORBIDDEN", None
+        
+        if not user.auth_provider == "email":
+            app.logger.error(f"[Login] User not found: {username}")
+            return "LOGIN_FAILED", None
 
         is_admin = True if user.is_admin == 1 else False
         
@@ -166,4 +177,41 @@ def resendEmail_(email):
 
     except Exception as e:
         app.logger.error(f"[ResendEmail] Internal error: {str(e)}")
+        return "SERVER_ERROR", {"error":str(e)}
+
+# main: callback for Google login
+def callbackGoogle_(user_info, ip):
+    # user_info => {'email':'','family_name':'','given_name':'','id':'','name':'','picture':'','verified_email':''}
+    try:
+        email = user_info.get("email")
+        
+        check = Users.query.filter_by(email=email).first()
+        if not check:
+            data = {
+                "name":user_info.get("name"),
+                "email":email,
+                "auth_provider":"google",
+                "email_confirmed":1
+            }
+            _insertUser(data)
+            db.session.commit()
+        
+        user = Users.query.filter_by(email=email).first()
+        is_admin = True if user.is_admin == 1 else False
+        
+        session = ActiveSessions.query.filter_by(user_id = user.id).first()
+        if session:
+            _revokeOldSession(user.id, session)
+        
+        access_token, refresh_token, _, refresh_jti = generate_tokens(user.id, is_admin)
+        _createSession(user.id, refresh_jti, ip)
+        db.session.commit()
+
+        return "SUCCESS", {
+            "access_token": access_token,
+            "refresh_token": refresh_token
+        }
+    
+    except Exception as e:
+        app.logger.error(f"[CallbackGOOGLE] Internal error: {str(e)}")
         return "SERVER_ERROR", {"error":str(e)}

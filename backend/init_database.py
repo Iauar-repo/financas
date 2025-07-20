@@ -40,6 +40,7 @@ TABLES['Users'] = ('''
       `password` varchar(60) NOT NULL,
       `is_admin` int NOT NULL,
       `email_confirmed` int NOT NULL,
+      `auth_provider` varchar(10) NOT NULL,
       `created_at` DATETIME NOT NULL,
       PRIMARY KEY (`id`),
       UNIQUE (`username`),
@@ -48,7 +49,7 @@ TABLES['Users'] = ('''
 
 TABLES['ActiveSessions'] = ('''
 CREATE TABLE `activesessions` (
-      `jti` VARCHAR(36),
+      `jti` VARCHAR(36) NOT NULL,
       `user_id` INT NOT NULL,
       `ip_address` VARCHAR(15) NOT NULL,
       `created_at` DATETIME NOT NULL,
@@ -59,7 +60,7 @@ CREATE TABLE `activesessions` (
 
 TABLES['TokenBlocklist'] = ('''
 CREATE TABLE `tokenblocklist` (
-      `jti` VARCHAR(36),
+      `jti` VARCHAR(36) NOT NULL,
       `user_id` INT NOT NULL,
       `ip_address` VARCHAR(15) NOT NULL,
       `created_at` DATETIME NOT NULL,
@@ -84,17 +85,18 @@ for TBname in TABLES:
 
 
 # inserting users
-USERquery = 'INSERT INTO users (name, email, username, password, is_admin, created_at, email_confirmed) VALUES (%s, %s, %s, %s, %s, %s, %s)'
+USERquery = 'INSERT INTO users (name, email, username, password, is_admin, created_at, email_confirmed, auth_provider) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)'
 USERvalues = [
-      (
-            "Rodrigo Lopes",
-            "123@gmail.com",
-            "Apoc",
-            generate_password_hash("admin").decode('utf-8'),
-            1,
-            datetime.now(timezone.utc).replace(tzinfo=None),
-            1
-      ),
+      #(
+      #      "Rodrigo Lopes",
+      #      "123@gmail.com",
+      #      "Apoc",
+      #      generate_password_hash("admin").decode('utf-8'),
+      #      1,
+      #      datetime.now(timezone.utc).replace(tzinfo=None),
+      #      1,
+      #      "email"
+      #),
       (
             "Rafael de Pilla",
             "rrmontebello@gmail.com",
@@ -102,7 +104,8 @@ USERvalues = [
             generate_password_hash("admin").decode('utf-8'),
             1,
             datetime.now(timezone.utc).replace(tzinfo=None),
-            1
+            1,
+            "email"
       ),
       (
             "User 1",
@@ -111,7 +114,8 @@ USERvalues = [
             generate_password_hash("user1").decode('utf-8'),
             0,
             datetime.now(timezone.utc).replace(tzinfo=None),
-            1
+            1,
+            "email"
       ),
       (
             "User 2",
@@ -120,7 +124,8 @@ USERvalues = [
             generate_password_hash("user2").decode('utf-8'),
             0,
             datetime.now(timezone.utc).replace(tzinfo=None),
-            1
+            1,
+            "email"
       ),
       (
             "User 3",
@@ -129,25 +134,8 @@ USERvalues = [
             generate_password_hash("user3").decode('utf-8'),
             0,
             datetime.now(timezone.utc).replace(tzinfo=None),
-            1
-      ),
-      (
-            "User 4",
-            "user4@gmail.com",
-            "user4",
-            generate_password_hash("user4").decode('utf-8'),
-            0,
-            datetime.now(timezone.utc).replace(tzinfo=None),
-            1
-      ),
-      (
-            "User 5",
-            "user5@gmail.com",
-            "user5",
-            generate_password_hash("user5").decode('utf-8'),
-            0,
-            datetime.now(timezone.utc).replace(tzinfo=None),
-            1
+            1,
+            "email"
       )
 ]
 cursor.executemany(USERquery, USERvalues)

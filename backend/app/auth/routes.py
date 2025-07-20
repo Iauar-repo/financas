@@ -1,4 +1,4 @@
-from flask import request, jsonify, render_template, url_for
+from flask import request, render_template, url_for
 from flask_jwt_extended import jwt_required, get_jwt_identity, get_jwt
 from app.extensions import oauth
 from app.auth.service import (
@@ -7,7 +7,8 @@ from app.auth.service import (
     refreshTokens_,
     me_,
     confirmEmail_,
-    resendEmail_
+    resendEmail_,
+    callbackGoogle_
 )
 from app.core.responses import response
 from app.auth import auth_bp
@@ -71,5 +72,15 @@ def resendEmail():
 # GET  /api/auth/login/google  OAuth2.0 # MOVER PARA O FRONT
 @auth_bp.get('/login/google')
 def loginGoogle():
-    redirect_uri = url_for('users.callbackGoogle', _external=True)
+    redirect_uri = url_for('auth.callbackGoogle', _external=True)
     return oauth.google.authorize_redirect(redirect_uri)
+
+# GET  /api/auth/callback/google  OAuth2.0 Callback
+@auth_bp.get('/callback/google')
+def callbackGoogle():
+    token = oauth.google.authorize_access_token()
+    user_info = oauth.google.get('userinfo').json()
+    ip = request.remote_addr
+    key,data = callbackGoogle_(user_info, ip)
+
+    return response(key,data if data else None)

@@ -5,12 +5,13 @@ class Users(db.Model):
     __tablename__ = 'users'
     
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    name = db.Column(db.String(60), nullable=False)
-    email = db.Column(db.String(320), nullable=False, unique=True)
-    username = db.Column(db.String(40), nullable=False, unique=True)
-    password = db.Column(db.String(60), nullable=False)
+    name = db.Column(db.String(60))
+    email = db.Column(db.String(320), unique=True)
+    username = db.Column(db.String(40), unique=True)
+    password = db.Column(db.String(60))
     is_admin = db.Column(db.Integer, default=0)
     email_confirmed = db.Column(db.Integer, default=0)
+    auth_provider = db.Column(db.String(10), default="email")
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc).replace(tzinfo=None))
 
     active = db.relationship("ActiveSessions", backref="user", cascade="all, delete", passive_deletes=True)
