@@ -39,8 +39,8 @@ class Config:
     # Google
     RECAPTCHA_SITE_KEY = os.getenv("RECAPTCHA_SITE_KEY")
     RECAPTCHA_SECRET_KEY = os.getenv("RECAPTCHA_SECRET_KEY")
-    GOOGLE_CLIENT_ID = "540997724283-ist5ne58nrpq3o2mbc7k8hilb9o3ferp.apps.googleusercontent.com"
-    GOOGLE_CLIENT_SECRET = "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"
+    GOOGLE_CLIENT_ID = os.getenv("GOOGLE_CLIENT_ID")
+    GOOGLE_CLIENT_SECRET = os.getenv("GOOGLE_CLIENT_SECRET")
 
 class DevelopmentConfig(Config):
     DEBUG = True

@@ -21,7 +21,7 @@ A aplicação foi projetada para ser modular, segura, fácil de manter, e modern
 
 ## 📁 Estrutura de diretórios
 
-
+```
 app/
 ├── (auth)/                  # Telas públicas: login, register, forgot password
 │   ├── login.tsx
@@ -40,7 +40,7 @@ app/
 ├── hooks/                   # Hooks customizados: useAuth, useColorScheme, etc.
 ├── utils/                   # Helpers/utilitários: formatters, validation
 └── assets/                  # Imagens, ícones (profile-placeholder, etc.)
-
+```
 
 ---
 
