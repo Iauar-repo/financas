@@ -1,38 +1,14 @@
 from flask import current_app as app
 from marshmallow import ValidationError
-from flask_bcrypt import generate_password_hash
-import requests
+
 from app.extensions import db
 from app.models import Users
-from app.users.schemas import listUser_schema, listUsers_schema, updateUser_schema, createUser_schema
 from app.auth.utils import send_confirmation_email
+from app.auth.repository import get_user_by_email
 
-# helper: insert new user
-def _insertUser(input):
-    db.session.add(Users(
-        name = input.get('name'),
-        email = input.get('email'),
-        username = input.get('username'),
-        password = generate_password_hash(input.get('password')).decode('utf-8')
-    ))
-
-# helper: update user
-def _updateUser(data, user):
-    blacklist = ['ID', 'is_admin', 'email_confirmed']
-    for key,val in data.items():
-        if key not in blacklist:
-            if key == 'password':
-                val = generate_password_hash(val).decode('utf-8')
-            setattr(user, key, val)
-
-# helper: verify recaptcha token
-def verify_recaptcha(token):
-    secret_key = app.config['RECAPTCHA_SECRET_KEY']
-    url = 'https://www.google.com/recaptcha/api/siteverify'
-    payload = {'secret': secret_key, 'response': token}
-    response = requests.post(url, data=payload)
-    result = response.json()
-    return result.get('success', False)
+from .schemas import listUser_schema, listUsers_schema, updateUser_schema, createUser_schema
+from .utils import verify_recaptcha
+from .repository import insert_user, update_user, insert_provider
 
 # main: dump Users
 def listUsers_(id: int = 0):
@@ -55,15 +31,19 @@ def listUsers_(id: int = 0):
 # main: new User
 def createUser_(input):
     try:
-        recaptcha_token = input.get('recaptcha_token')
+        data = createUser_schema.load(input)
+        recaptcha_token = data['recaptcha_token']
         if not recaptcha_token or not verify_recaptcha(recaptcha_token):
             return "RECAPTCHA_INVALID", None
 
-        data = createUser_schema.load(input)
-        _insertUser(data)
+        insert_user(data)
+        db.session.flush()        
+        user = get_user_by_email(data['email'])
+        if not user:
+            raise Exception('Could not create user')
+        
+        insert_provider(user.id, 'email', data['email'], data['password'])
         db.session.commit()
-
-        user = Users.query.filter_by(email=data['email']).first()
         send_confirmation_email(user)
         
         return "CREATED", listUser_schema.dump(user)

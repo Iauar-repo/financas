@@ -18,7 +18,7 @@ def listUsers():
 
 # POST  /api/users/register  Create a new user
 @users_bp.post('/register')
-@limiter.limit("2 per 5 minutes")
+#@limiter.limit("2 per 5 minutes")
 def createUser():
     key,data = createUser_(request.get_json())
 

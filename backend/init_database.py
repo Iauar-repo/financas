@@ -34,17 +34,25 @@ TABLES = {}
 TABLES['Users'] = ('''
       CREATE TABLE `users` (
       `id` int NOT NULL AUTO_INCREMENT,
-      `name` varchar(60) NOT NULL,
+      `name` varchar(100) NOT NULL,
       `email` varchar(320) NOT NULL,
-      `username` varchar(40) NOT NULL,
-      `password` varchar(60) NOT NULL,
       `is_admin` int NOT NULL,
       `email_confirmed` int NOT NULL,
-      `auth_provider` varchar(10) NOT NULL,
       `created_at` DATETIME NOT NULL,
       PRIMARY KEY (`id`),
-      UNIQUE (`username`),
       UNIQUE (`email`)
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;''')
+
+TABLES['AuthProvider'] = ('''
+      CREATE TABLE `authproviders` (
+      `id` int NOT NULL AUTO_INCREMENT,
+      `user_id` INT NOT NULL,
+      `provider` varchar(20) NOT NULL,
+      `provider_user_id` varchar(255) NOT NULL,
+      `password_hash` VARCHAR(60),
+      `created_at` DATETIME NOT NULL,
+      PRIMARY KEY (`id`),
+      FOREIGN KEY (`user_id`) REFERENCES users(`id`) ON DELETE CASCADE
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;''')
 
 TABLES['ActiveSessions'] = ('''
@@ -85,18 +93,19 @@ for TBname in TABLES:
 
 
 # inserting users
+"""
 USERquery = 'INSERT INTO users (name, email, username, password, is_admin, created_at, email_confirmed, auth_provider) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)'
 USERvalues = [
-      #(
-      #      "Rodrigo Lopes",
-      #      "123@gmail.com",
-      #      "Apoc",
-      #      generate_password_hash("admin").decode('utf-8'),
-      #      1,
-      #      datetime.now(timezone.utc).replace(tzinfo=None),
-      #      1,
-      #      "email"
-      #),
+      (
+            "Rodrigo Lopes",
+            "123@gmail.com",
+            "Apoc",
+            generate_password_hash("admin").decode('utf-8'),
+            1,
+            datetime.now(timezone.utc).replace(tzinfo=None),
+            1,
+            "email"
+      ),
       (
             "Rafael de Pilla",
             "rrmontebello@gmail.com",
@@ -106,39 +115,10 @@ USERvalues = [
             datetime.now(timezone.utc).replace(tzinfo=None),
             1,
             "email"
-      ),
-      (
-            "User 1",
-            "user1@gmail.com",
-            "user1",
-            generate_password_hash("user1").decode('utf-8'),
-            0,
-            datetime.now(timezone.utc).replace(tzinfo=None),
-            1,
-            "email"
-      ),
-      (
-            "User 2",
-            "user2@gmail.com",
-            "user2",
-            generate_password_hash("user2").decode('utf-8'),
-            0,
-            datetime.now(timezone.utc).replace(tzinfo=None),
-            1,
-            "email"
-      ),
-      (
-            "User 3",
-            "user3@gmail.com",
-            "user3",
-            generate_password_hash("user3").decode('utf-8'),
-            0,
-            datetime.now(timezone.utc).replace(tzinfo=None),
-            1,
-            "email"
       )
 ]
 cursor.executemany(USERquery, USERvalues)
+"""
 
 cursor.execute('select * from financas.users')
 print(' -------------  Users List:  -------------')

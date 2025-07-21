@@ -1,7 +1,7 @@
 from flask_bcrypt import check_password_hash
 from flask import current_app as app
 from app.extensions import db
-from app.models import Users, ActiveSessions, TokenBlocklist
+from app.models import Users, ActiveSessions, TokenBlocklist, AuthProvider
 from app.auth.utils import generate_tokens, confirm_token, send_confirmation_email
 
 # helper: insert new user | OAuth2
@@ -179,26 +179,48 @@ def resendEmail_(email):
         app.logger.error(f"[ResendEmail] Internal error: {str(e)}")
         return "SERVER_ERROR", {"error":str(e)}
 
+def _find_user_by_provider(provider, provider_user_id):
+    ap = AuthProvider.query.filter_by(
+        provider=provider,
+        provider_user_id=provider_user_id
+    ).first()
+    return ap.user if ap else None
+
 # main: callback for Google login
 def callbackGoogle_(user_info, ip):
     # user_info => {'email':'','family_name':'','given_name':'','id':'','name':'','picture':'','verified_email':''}
     try:
-        email = user_info.get("email")
+        provider = 'google'
+        sub = user_info['id']
+        user = _find_user_by_provider(provider, sub)
         
-        check = Users.query.filter_by(email=email).first()
-        if not check:
-            data = {
-                "name":user_info.get("name"),
-                "email":email,
-                "auth_provider":"google",
-                "email_confirmed":1
-            }
-            _insertUser(data)
-            db.session.commit()
+        if not user:
+            # if email matches an existing user, link them
+            user = Users.query.filter_by(email=user_info['email']).first()
+            if not user:
+                # brand-new account
+                user = Users(
+                    name = user_info['name'],
+                    email = user_info['email'],
+                    email_confirmed = 1
+                )
+                db.session.add(user)
+                db.session.flush()  # get user.id
+
+            elif not user.email_confirmed:
+                user.email_confirmed = 1
+                db.session.commit()
+            # create the provider link
+            db.session.add(AuthProvider(
+                user_id=user.id,
+                provider=provider,
+                provider_user_id=sub
+            ))
         
-        user = Users.query.filter_by(email=email).first()
-        is_admin = True if user.is_admin == 1 else False
-        
+        # now issue tokens exactly as before...
+        is_admin = bool(user.is_admin)
+        #is_admin = True if user.is_admin == 1 else False
+        # revoke old session, create new session, generate tokens...         
         session = ActiveSessions.query.filter_by(user_id = user.id).first()
         if session:
             _revokeOldSession(user.id, session)

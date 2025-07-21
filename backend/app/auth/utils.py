@@ -13,7 +13,6 @@ from flask import current_app as app
 from flask_mail import Message
 from app.extensions import mail
 
-# gera novos tokens
 def generate_tokens(user_id, is_admin):
     access = create_access_token(
         identity=str(user_id),
@@ -28,7 +27,6 @@ def generate_tokens(user_id, is_admin):
 
     return access, refresh, jti_acc, jti_ref
 
-# decorador admin_required
 def admin_required(fn):
     @wraps(fn)
     def wrapper(*args, **kwargs):
@@ -39,7 +37,6 @@ def admin_required(fn):
         return fn(*args, **kwargs)
     return wrapper
 
-# decorador owner_or_admin_required
 def owner_or_admin_required(fn):
     @wraps(fn)
     def wrapper(user_id, *args, **kwargs):
@@ -53,7 +50,6 @@ def owner_or_admin_required(fn):
         return fn(user_id, *args, **kwargs)
     return wrapper
 
-# token de confirmação de email
 def generate_confirmation_token(email):
     s = URLSafeTimedSerializer(app.config["SECRET_KEY"])
     return s.dumps(email, salt="email-confirm")
