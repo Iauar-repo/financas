@@ -1,11 +1,15 @@
-# Ambiente virtual
+# Venv + logs
 venv/
 *.pyc
 __pycache__/
 logs/
 
-# Variáveis sensíveis
+# vars
 .env
+google_oauth.json
 
-# Compose para teste local
+# Docker compose
 compose.yaml
+
+# Others
+todo.txt
