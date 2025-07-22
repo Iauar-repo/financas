@@ -1,66 +1,59 @@
 from flask_bcrypt import check_password_hash
 from flask import current_app as app
+from marshmallow import ValidationError
+
 from app.extensions import db
-from app.models import Users, ActiveSessions, TokenBlocklist, AuthProvider
-from app.auth.utils import generate_tokens, confirm_token, send_confirmation_email
+from app.users.repository import (
+    get_user_by_email,
+    get_user_by_id,
+    insert_user,
+    insert_provider
+)
 
-# helper: insert new user | OAuth2
-def _insertUser(input):
-    db.session.add(Users(
-        name = input.get('name'),
-        email = input.get('email'),
-        auth_provider = input.get('auth_provider')
-    ))
+from .utils import generate_tokens, confirm_token, send_confirmation_email
+from .schemas import login_schema, create_user_social_schema
+from .repository import (
+    create_session,
+    get_user_by_provider,
+    get_active_session,
+    get_session_by_jti,
+    revoke_session
+)
 
-# helper: create a new session
-def _createSession(user_id, refresh_jti, ip):
-    db.session.add(ActiveSessions(
-        jti = refresh_jti,
-        user_id = user_id,
-        ip_address = ip
-    ))
+def login_(input: dict, ip: str):
+    """
+    Handle authentication login
 
-# helper: revoke the old session
-def _revokeOldSession(user_id, session):
-    db.session.add(TokenBlocklist(
-        jti = session.jti,
-        user_id = user_id,
-        ip_address = session.ip_address,
-        created_at = session.created_at,
-        expires_at = session.expires_at
-    ))
-    db.session.delete(session)
+    Parameters:
+        input (dict): JSON payload with fields: email, password.
+        ip (str): IP Address requesting login.
 
-# main: login
-def login_(data, ip):
+    Returns:
+        tuple: (status: str, data: dict)
+    """
     try:
-        username = data.get('username')
-        password = data.get('password')
-        user = Users.query.filter_by(username=username).first()
+        data = login_schema.load(input)
+        user, ap = get_user_by_provider('email', data['email'])
         if not user:
-            app.logger.error(f"[Login] User not found: {username}")
-            return "LOGIN_FAILED", None
-
-        if not check_password_hash(user.password, password):
-            app.logger.error(f"[Login] Wrong password. User: {username}")
+            app.logger.error(f"[Login] User not found: {data['email']}")
             return "LOGIN_FAILED", None
         
-        if not user.email_confirmed == 1:
+        if not check_password_hash(ap.password_hash, data['password']):
+            app.logger.error(f"[Login] Wrong password. User: {user.email}")
+            return "LOGIN_FAILED", None
+        
+        if not user.email_confirmed:
             app.logger.error(f"[Login] Email not verified: {user.email}")
             return "FORBIDDEN", None
-        
-        if not user.auth_provider == "email":
-            app.logger.error(f"[Login] User not found: {username}")
-            return "LOGIN_FAILED", None
 
-        is_admin = True if user.is_admin == 1 else False
-        
-        session = ActiveSessions.query.filter_by(user_id = user.id).first()
+        is_admin = bool(user.is_admin)
+
+        session = get_active_session(user.id)
         if session:
-            _revokeOldSession(user.id, session)
-        
+            revoke_session(user.id, session)
+
         access_token, refresh_token, _, refresh_jti = generate_tokens(user.id, is_admin)
-        _createSession(user.id, refresh_jti, ip)
+        create_session(user.id, refresh_jti, ip)
         db.session.commit()
 
         return "SUCCESS", {
@@ -68,66 +61,91 @@ def login_(data, ip):
             "refresh_token": refresh_token
         }
     
+    except ValidationError as e:
+        app.logger.error(f"[Login] Invalid payload: {str(e.messages)}")
+        return "INVALID_PAYLOAD", {"error":str(e.messages)}
+
     except Exception as e:
         db.session.rollback()
         app.logger.error(f"[Login] Internal error: {str(e)}")
-        return "SERVER_ERROR", {"error":str(e)}
+        return "SERVER_ERROR", None
 
-# main: logout
-def logout_(user_id):
+def logout_(user_id: int):
+    """
+    Handle authentication logout
+
+    Parameters:
+        user_id (int): User ID to log out.
+
+    Returns:
+        tuple: (status: str, None)
+    """
     try:
-        session = ActiveSessions.query.filter_by(user_id = user_id).first()
-        if not session:
-            app.logger.error(f"[Logout] User not found. ID: {user_id} - THIS SHOULD NEVER HAPPEN")
-            return "USER_NOT_FOUND", None
-        
-        _revokeOldSession(user_id, session)
-        db.session.commit()
+        session = get_active_session(user_id)
+        if session:
+            revoke_session(user_id, session)
+            db.session.commit()
 
         return "SUCCESS", None
 
     except Exception as e:
         db.session.rollback()
         app.logger.error(f"[Logout] Internal error: {str(e)}")
-        return "SERVER_ERROR", {"error":str(e)}
+        return "SERVER_ERROR", None
 
-# main: make new tokens
-def refreshTokens_(jti, user_id, ip):
+def refresh_tokens_(refresh_jti: str, user_id: int, ip: str):
+    """
+    Rotate access and refresh tokens
+
+    Parameters:
+        refresh_jti (str): Unique identifier (JTI) of the refresh token.
+        user_id (int): User ID.
+        ip (str): IP address from which the session is created.
+
+    Returns:
+        tuple: (status: str, data: dict)
+    """
     try:
-        session = ActiveSessions.query.filter_by(jti=jti, user_id=user_id).first()
-        if not session:
-            app.logger.error(f"[Refresh Token] User not found. ID: {user_id}")
-            return "USER_NOT_FOUND", None
-
+        session = get_session_by_jti(refresh_jti, user_id)
         if session.ip_address != ip:
             app.logger.error(f"[Refresh Token] IP address not authorized: {ip} | Expected: {session.ip_address}")
             return "UNAUTHENTICATED", None
         
-        user = Users.query.filter_by(id=user_id).first()
-        is_admin = True if user.is_admin == 1 else False
-
-        _revokeOldSession(user_id, session)
+        user = get_user_by_id(user_id)
+        if not user:
+            app.logger.error(f"[Refresh Token] No active sessions. User ID: {user_id}")
+            return "USER_NOT_FOUND", None
+        
+        is_admin = bool(user.is_admin)
+        revoke_session(user_id, session)
         access_token, refresh_token, _, refresh_jti = generate_tokens(user_id, is_admin)
-        _createSession(user_id, refresh_jti, ip)
+        create_session(user_id, refresh_jti, ip)
         db.session.commit()
 
         return "SUCCESS", { 
             "access_token": access_token,
             "refresh_token": refresh_token
             }
-    
+
     except Exception as e:
         db.session.rollback()
         app.logger.error(f"[Refresh Token] Internal error: {str(e)}")
-        return "SERVER_ERROR", {"error":str(e)}
+        return "SERVER_ERROR", None
 
-# main: ping session
-def me_(user_id):
+def me_(user_id: int):
+    """
+    Check user authentication - Ping
+
+    Parameters:
+        user_id (int): User ID.
+
+    Returns:
+        tuple: (status: str, data: dict)
+    """
     try:
-        user = Users.query.get(user_id)
-
+        user = get_user_by_id(user_id)
         if not user:
-            app.logger.error(f"[WhoamI] User not found. ID: {user_id}")
+            app.logger.error(f"[WhoamI] User not found: {user_id}")
             return "USER_NOT_FOUND", None
         
         return "SUCCESS", {
@@ -136,104 +154,110 @@ def me_(user_id):
     
     except Exception as e:
         app.logger.error(f"[WhoamI] Internal error: {str(e)}")
-        return "SERVER_ERROR", {"error":str(e)}
+        return "SERVER_ERROR", None
 
-# main: email confirmation
-def confirmEmail_(token):
+def confirm_email_(token: str):
+    """
+    Send an email with a confirmation link
+
+    Parameters:
+        token (str): itsdangerous's token, generated during user registration
+    
+    Returns:
+        HTML template.
+    """
     try:
         email = confirm_token(token)
         if not email:
             app.logger.error(f"[ConfirmEmail] Invalid token or expired")
-            return 'Token inválido ou expirado'
+            return 'Parece que este link já expirou :('
 
-        user = Users.query.filter_by(email=email).first()
+        user = get_user_by_email(email)
         if not user:
-            app.logger.error(f"[ConfirmEmail] User not found. Email: {email}")
-            return 'Usuário não existe'
-
+            app.logger.error(f"[ConfirmEmail] User not found: {email}")
+            return 'E-mail não registrado! Tente novamente ou entre em contato com a equipe de suporte.'
+        
         user.email_confirmed = 1
         db.session.commit()
 
-        return None
-    
+        return None        
+
     except Exception as e:
         app.logger.error(f"[ConfirmEmail] Internal error: {str(e)}")
-        return f"Erro desconhecido: {str(e)}"
+        return f"Erro desconhecido. Favor entrar em contato com a equipe de suporte."
 
-# main: resend email confirmation
-def resendEmail_(email):
+def resend_email_(email: str):
+    """
+    Resend the email with a confirmation link
+
+    Parameters:
+        email (str): Email that will receive the link
+    
+    Returns:
+        tuple: (status: str, None)
+    """
     try:
-        user = Users.query.filter_by(email=email).first()
+        user = get_user_by_email(email)
         if not user:
-            app.logger.error(f"[ResendEmail] Email not registered: {email}")
+            app.logger.error(f"[ResendEmail] User not found: {email}")
             return "USER_NOT_FOUND", None
         
-        if user.email_confirmed == 1:
-            return "USER_ALREADY_EXISTS", None
+        if user.email_confirmed:
+            return "USER_ALREADY_EXISTS", {
+                "message":"Email already confirmed"
+            }
         
         send_confirmation_email(user)
-
-        return "SUCCESS", None
-
+        return "SUCCESS", None        
+    
     except Exception as e:
         app.logger.error(f"[ResendEmail] Internal error: {str(e)}")
-        return "SERVER_ERROR", {"error":str(e)}
+        return "SERVER_ERROR", None
 
-def _find_user_by_provider(provider, provider_user_id):
-    ap = AuthProvider.query.filter_by(
-        provider=provider,
-        provider_user_id=provider_user_id
-    ).first()
-    return ap.user if ap else None
+def callback_google_(user_info: dict, ip: str):
+    """
+    Callback OAuth2 from Google
 
-# main: callback for Google login
-def callbackGoogle_(user_info, ip):
-    # user_info => {'email':'','family_name':'','given_name':'','id':'','name':'','picture':'','verified_email':''}
+    Parameters:
+        user_info (dict): Google information of the user.
+        ip (str): IP Address of the user.
+    
+    Returns:
+        tuple: (status: str, data: dict)
+    """
     try:
+        data = create_user_social_schema.load(user_info)
         provider = 'google'
-        sub = user_info['id']
-        user = _find_user_by_provider(provider, sub)
-        
-        if not user:
-            # if email matches an existing user, link them
-            user = Users.query.filter_by(email=user_info['email']).first()
-            if not user:
-                # brand-new account
-                user = Users(
-                    name = user_info['name'],
-                    email = user_info['email'],
-                    email_confirmed = 1
-                )
-                db.session.add(user)
-                db.session.flush()  # get user.id
+        user, _ = get_user_by_provider(provider, data['id'])
 
-            elif not user.email_confirmed:
+        if not user:
+            user = get_user_by_email(data['email'])
+            if not user:
+                insert_user(data)
+                db.session.flush()
+                user = get_user_by_email(data['email'])
+
+            if not user.email_confirmed:
                 user.email_confirmed = 1
-                db.session.commit()
-            # create the provider link
-            db.session.add(AuthProvider(
-                user_id=user.id,
-                provider=provider,
-                provider_user_id=sub
-            ))
+            
+            insert_provider(user.id,provider,data['id'])
+            db.session.commit()
         
-        # now issue tokens exactly as before...
         is_admin = bool(user.is_admin)
-        #is_admin = True if user.is_admin == 1 else False
-        # revoke old session, create new session, generate tokens...         
-        session = ActiveSessions.query.filter_by(user_id = user.id).first()
+
+        session = get_active_session(user.id)
         if session:
-            _revokeOldSession(user.id, session)
+            revoke_session(user.id, session)
         
         access_token, refresh_token, _, refresh_jti = generate_tokens(user.id, is_admin)
-        _createSession(user.id, refresh_jti, ip)
+        create_session(user.id, refresh_jti, ip)
         db.session.commit()
 
         return "SUCCESS", {
             "access_token": access_token,
             "refresh_token": refresh_token
         }
-    
+
     except Exception as e:
         app.logger.error(f"[CallbackGOOGLE] Internal error: {str(e)}")
-        return "SERVER_ERROR", {"error":str(e)}
+        return "SERVER_ERROR", None

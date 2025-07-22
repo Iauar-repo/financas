@@ -17,6 +17,7 @@ MESSAGES = {
     'OAUTH_ERROR': ('OAuth authentication failed.', 400),
     'SERVER_ERROR': ('Internal server error.', 500),
     'UNKNOWN_ERROR': ('An unknown error occurred.', 500),
+    'UNEXPECTED_ERROR': ('An unexpected error occurred.', 500)
 }
 
 def response(key: str, data: dict = None):

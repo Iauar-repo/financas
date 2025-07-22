@@ -25,7 +25,7 @@ class AuthProvider(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     user_id = db.Column(db.Integer,db.ForeignKey('users.id', ondelete='CASCADE'),nullable=False)
     provider = db.Column(db.String(20), nullable=False)
-    provider_user_id = db.Column(db.String(255), nullable=False)
+    provider_user_id = db.Column(db.String(255), nullable=False, unique=True)
     password_hash = db.Column(db.String(60))
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc).replace(tzinfo=None))
 

@@ -37,8 +37,8 @@ class Config:
     MAIL_DEFAULT_SENDER = os.getenv("MAIL_DEFAULT_SENDER")
 
     # Google
-    RECAPTCHA_SITE_KEY = os.getenv("RECAPTCHA_SITE_KEY")
-    RECAPTCHA_SECRET_KEY = os.getenv("RECAPTCHA_SECRET_KEY")
+    RECAPTCHA_SITE_KEY = os.getenv("PROD_RECAPTCHA_SITE_KEY")
+    RECAPTCHA_SECRET_KEY = os.getenv("PROD_RECAPTCHA_SECRET_KEY")
     GOOGLE_CLIENT_ID = os.getenv("GOOGLE_CLIENT_ID")
     GOOGLE_CLIENT_SECRET = os.getenv("GOOGLE_CLIENT_SECRET")
 
@@ -47,6 +47,8 @@ class DevelopmentConfig(Config):
     SQLALCHEMY_ECHO = True
     #JWT_ACCESS_TOKEN_EXPIRES = timedelta(minutes=1)
     #JWT_REFRESH_TOKEN_EXPIRES = timedelta(minutes=2)
+    RECAPTCHA_SITE_KEY = os.getenv("DEV_RECAPTCHA_SITE_KEY")
+    RECAPTCHA_SECRET_KEY = os.getenv("DEV_RECAPTCHA_SECRET_KEY")
 
 class ProductionConfig(Config):
     DEBUG = False

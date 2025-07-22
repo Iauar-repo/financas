@@ -120,22 +120,24 @@ Cria um novo usuário.
 ```json
 {
     "name":"Real Name",
-    "username":"xyz",
     "password":"pass",
     "email":"xyz@domain.com",
     "recaptcha_token":"token"
 }
 ```
-
 #### Response
 ```json
 {
-    "message": "Usuário xyz registrado"
+    "data": {
+        "created_at": "2025-01-01T23:59:59",
+        "email": "xyz@domain.com",
+        "id": 1,
+        "name": "Real Name"
+    },
+    "message": "Resource created successfully."
 }
 ```
-
 ---
-
 ### GET `/api/users`
 
 Lista todos os usuários (Admin only).
@@ -146,26 +148,24 @@ Lista todos os usuários (Admin only).
 #### Response
 ```json
 {
-  [
-    {
-        "created_at": "2025-07-14T05:48:03",
-        "email": "mail@domain.com",
-        "id": 1,
-        "name": "Real Name",
-        "username": "user1"
-    },
-    {
-        "created_at": "2025-07-14T05:48:04",
-        "email": "mail@domain.com",
-        "id": 2,
-        "name": "Real Name",
-        "username": "user2"
-    }
-]
+    "data": [
+        {
+            "created_at": "2025-07-14T05:48:03",
+            "email": "mail@domain.com",
+            "id": 1,
+            "name": "Real Name"
+        },
+        {
+            "created_at": "2025-07-14T05:48:04",
+            "email": "mail@domain.com",
+            "id": 2,
+            "name": "Real Name"
+        }
+    ],
+    "message": "Operation successful."
 }
 ```
 ---
-
 ### GET `/api/users/<id>`
 
 Lista um usuário específico (Admin or Owner only).
@@ -175,18 +175,17 @@ Lista um usuário específico (Admin or Owner only).
 
 #### Response
 ```json
-
 {
-    "created_at": "2025-07-14T05:48:04",
-    "email": "mail@domain.com",
-    "id": 1,
-    "name": "Real Name",
-    "username": "user1"
+    "data": {
+        "created_at": "2025-07-14T05:48:04",
+        "email": "mail@domain.com",
+        "id": 1,
+        "name": "Real Name",
+    },
+    "message": "Operation successful."
 }
 ```
-
 ---
-
 ### PATCH `/api/users/<id>`
 
 Atualiza dados do usuário especificado (Admin or Owner only).
@@ -200,19 +199,19 @@ Atualiza dados do usuário especificado (Admin or Owner only).
   "name": "Novo Nome"
 }
 ```
-
 #### Response
 ```json
 {
-    "created_at": "2025-07-14T05:48:04",
-    "email": "mail@domain.com",
-    "id": 1,
-    "name": "Novo Nome",
-    "username": "user1"
+    "data": {
+            "created_at": "2025-07-14T05:48:04",
+            "email": "mail@domain.com",
+            "id": 1,
+            "name": "Novo Nome"
+    },
+    "message": "Operation successful."
 }
 ```
 ---
-
 ### DELETE `/api/users/<id>`
 
 Remove o usuário especificado (Admin only).
@@ -223,7 +222,7 @@ Remove o usuário especificado (Admin only).
 #### Response
 ```json
 {
-    "message": "Usuário user1 foi deletado"
+    "message": "Operation successful."
 }
 ```
 ---

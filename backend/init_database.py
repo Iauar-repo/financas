@@ -51,6 +51,7 @@ TABLES['AuthProvider'] = ('''
       `provider_user_id` varchar(255) NOT NULL,
       `password_hash` VARCHAR(60),
       `created_at` DATETIME NOT NULL,
+      UNIQUE (`provider_user_id`),
       PRIMARY KEY (`id`),
       FOREIGN KEY (`user_id`) REFERENCES users(`id`) ON DELETE CASCADE
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;''')

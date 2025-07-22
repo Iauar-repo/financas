@@ -28,7 +28,7 @@ class UpdateUserSchema(Schema):
     name = fields.Str(validate=validate.Length(min=1))
 
 
-listUser_schema = ListUserSchema()
-listUsers_schema = ListUserSchema(many=True)
-updateUser_schema = UpdateUserSchema()
-createUser_schema = CreateUserSchema()
+list_user_schema = ListUserSchema()
+list_users_schema = ListUserSchema(many=True)
+update_user_schema = UpdateUserSchema()
+create_user_schema = CreateUserSchema()

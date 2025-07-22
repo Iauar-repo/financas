@@ -3,6 +3,7 @@ from werkzeug.exceptions import HTTPException
 from .extensions import db, jwt, cors, limiter, mail, oauth
 from .config import config_dict
 from .logger import setup_logger
+from .core.responses import response
 
 def create_app(config_name='default'):
     app = Flask(__name__)
@@ -62,12 +63,8 @@ def create_app(config_name='default'):
     
     @app.errorhandler(Exception)
     def handle_unexpected_error(e):
-        app.logger.error(f"Erro inesperado: {str(e)}")
-        return jsonify({
-            "error": "Internal Server Error",
-            "message": "An Unexpected Error Occurred",
-            "status_code": 500
-        }), 500
+        app.logger.error(f"Unexpected error: {str(e)}")
+        return response("UNEXPECTED_ERROR", None)
     
     # Verificação de variáveis de ambiente carregadas
     app.config['ENV'] = 'production' if config_name == 'prod' else 'development'
