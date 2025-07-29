@@ -45,7 +45,7 @@ A clean, secure API that lets users record incomes and expenses, manage profiles
 - **Language & Framework:** Python 3.11, Flask
 - **Auth & Security:** Flask‑JWT‑Extended, Flask‑Bcrypt, OAuth2 (Google)
 - **Rate‑Limiting:** Flask‑Limiter with Redis backend
-- **DB & Migrations:** PostgreSQL (or SQLite), SQLAlchemy, Flask‑Migrate (Alembic)
+- **DB & Migrations:** MySQL, SQLAlchemy, Flask‑Migrate (Alembic)
 - **Validation:** Marshmallow
 - **Testing:** pytest
 - **CI/CD:** GitHub Actions
