@@ -7,7 +7,6 @@ A clean, secure API that lets users record incomes and expenses, manage profiles
 
 <details>
   <summary>⚙️ How to run</summary>
-<br>
 
 1. **Clone and install**
 
