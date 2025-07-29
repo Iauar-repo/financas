@@ -1,4 +1,4 @@
-### **Project status:** Work in Progress (this readme included)
+## **Project status:** Work in Progress (this readme included)
 
 A clean, secure API that lets users record incomes and expenses, manage profiles and authentication (email/password + Google OAuth), and later analyze their financial data.
 
@@ -42,9 +42,8 @@ A clean, secure API that lets users record incomes and expenses, manage profiles
 </details>
 
 
-## 🛠️ Tech Stack
+# 🛠️ Tech Stack
 - **Language & Framework:** Python 3.11, Flask
-
 - **Auth & Security:** Flask‑JWT‑Extended, Flask‑Bcrypt, OAuth2 (Google)
 - **Rate‑Limiting:** Flask‑Limiter with Redis backend
 - **DB & Migrations:** PostgreSQL (or SQLite), SQLAlchemy, Flask‑Migrate (Alembic)
@@ -53,7 +52,7 @@ A clean, secure API that lets users record incomes and expenses, manage profiles
 - **CI/CD:** GitHub Actions
 - **Monitoring & Logging:** Python logging, rotating file handler
 
-## 📐 Architecture: Application Factory + Blueprints
+# 📐 Architecture: Application Factory + Blueprints
 
 ```
 app/
@@ -80,19 +79,17 @@ app/
 |   ├── utils.py         # Generic helper functions
 ```
 
-## 🔒 Secutiry
+# 🔒 Secutiry
 
 - JWTs with short‑lived access tokens (15 min) and rotating refresh tokens (7 days).
-
 - Passwords hashed with Bcrypt.
 - OAuth2 integration for Google login.
 - Rate‑limiting on sensitive endpoints backed by Redis.
 - Referential cascade deletes on user removal (SQLAlchemy + DB‑level).
 
-## ✅ Testing
+# ✅ Testing
 
 - **pytest** suite covering auth flows, user endpoints, and error cases.
-
 - In‑memory SQLite test DB, fixtures in `tests/`.
 - **Coverage:** > 80% on core modules.
 
