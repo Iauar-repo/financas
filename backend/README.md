@@ -1,83 +1,101 @@
-# Flask JWT Auth API – Backend de Autenticação Segura
+### **Project status:** Work in Progress (this readme included)
 
-Este é um backend construído com **Flask**, focado em autenticação segura usando **JWT (JSON Web Tokens)**, **controle de sessões**, **refresh tokens** e **boas práticas de segurança RESTful**.
+A clean, secure API that lets users record incomes and expenses, manage profiles and authentication (email/password + Google OAuth), and later analyze their financial data.
 
-O projeto foi estruturado com foco em **escalabilidade**, **manutenibilidade**, **separação de responsabilidades**, e é ideal para APIs modernas que exigem controle de login, proteção de rotas, gerenciamento de tokens e auditoria de sessão.
 
-[Documentação da API](api.md)
+[API Document](api.md) <br><br>
 
----
+<details>
+  <summary>⚙️ How to run</summary>
+<br>
 
-## 🚀 Tecnologias utilizadas
+1. **Clone and install**
 
-- Python 3.12+
-- Flask
-- Flask-JWT-Extended
-- Flask-Bcrypt
-- Flask-SQLAlchemy
-- Flask-CORS
-- MySQL 8+
-- RESTful API
-- JWT com blacklist
-- Log com `logging + RotatingFileHandler`
+    ```bash 
+    git clone https://github.com/Iauar-repo/financas.git
+    cd financas/backend
+    pip install -r requirements.txt
+    ```
 
----
+2. **Environment**
 
-## Estrutura de diretórios
+    Copy `.env.example` → `.env` and fill in:
+
+    ```bash
+    FLASK_APP=run.py
+    DATABASE_URL=…
+    JWT_SECRET_KEY=…
+    REDIS_URL=…
+    ```
+
+3. **Database setup**
+    ```bash
+    flask db upgrade
+    python init_database.py
+    ```
+
+4. **Run**
+
+    ```bash
+    flask run
+    ```
+</details>
+
+
+## 🛠️ Tech Stack
+- **Language & Framework:** Python 3.11, Flask
+
+- **Auth & Security:** Flask‑JWT‑Extended, Flask‑Bcrypt, OAuth2 (Google)
+- **Rate‑Limiting:** Flask‑Limiter with Redis backend
+- **DB & Migrations:** PostgreSQL (or SQLite), SQLAlchemy, Flask‑Migrate (Alembic)
+- **Validation:** Marshmallow
+- **Testing:** pytest
+- **CI/CD:** GitHub Actions
+- **Monitoring & Logging:** Python logging, rotating file handler
+
+## 📐 Architecture: Application Factory + Blueprints
 
 ```
 app/
-├── __init__.py          # Criação da app + configuração JWT
-├── config.py            # Carrega variáveis do .env e varáveis globais
-├── extensions.py        # Inicializa db, jwt, cors, etc
-├── models.py            # Models: Users, ActiveSessions, TokenBlocklist, ...
+├── __init__.py          # Create app object + JWT configuration
+├── config.py            # Load .env and global variables
+├── extensions.py        # Initiate instances
+├── models.py            # Database models
 ├── auth/
 │   ├── __init__.py      # Blueprint auth
-│   ├── routes.py        # Endpoints /login, /logout, /refresh
-│   ├── service.py       # Lógica de autenticação (login, sessões, rotação)
-│   ├── jwt_handlers.py  # Tratamento de erros JWT
-|   ├── utils.py         # Funções utilitárias
+│   ├── jwt_handlers.py  # JWT error handling
+│   ├── repository.py    # Data access layer
+│   ├── routes.py        # Endpoints
+│   ├── schemas.py       # Payload validator
+│   ├── service.py       # Business logic
+|   ├── utils.py         # Generic helper functions
+├── core
+|   ├── responses.py     # Controller for text responses
+├── users/
+│   ├── __init__.py      # Blueprint users
+│   ├── repository.py    # Data access layer
+│   ├── routes.py        # Endpoints
+│   ├── schemas.py       # Payload validator
+│   ├── service.py       # Business logic
+|   ├── utils.py         # Generic helper functions
 ```
 
-<details>
-  <summary>Sistema de Login</summary>
+## 🔒 Secutiry
 
-  ### ✅ Autenticação JWT
-  - Geração de `access_token` e `refresh_token`
-  - Tokens são assinados e têm validade configurável via `config.py`
+- JWTs with short‑lived access tokens (15 min) and rotating refresh tokens (7 days).
 
-  ### ✅ Sessão única por usuário
-  - Ao logar, sessões antigas são automaticamente revogadas
-  - A nova sessão é armazenada com o `refresh_token` (via `ActiveSessions`)
+- Passwords hashed with Bcrypt.
+- OAuth2 integration for Google login.
+- Rate‑limiting on sensitive endpoints backed by Redis.
+- Referential cascade deletes on user removal (SQLAlchemy + DB‑level).
 
-  ### ✅ Refresh Token seguro
-  - Refresh é atrelado ao IP de origem
-  - Validade de rotação verificada no banco (IP match)
+## ✅ Testing
 
-  ### ✅ Logout com blacklist
-  - O token usado no logout (refresh) é movido para a tabela `TokenBlocklist`
-  - Todos os tokens em blacklist são bloqueados automaticamente em qualquer rota protegida
+- **pytest** suite covering auth flows, user endpoints, and error cases.
 
-  ### ✅ Proteção de rotas com `@jwt_required()`
-  - Se token for revogado, inválido, ausente ou expirado → retorna erro personalizado
+- In‑memory SQLite test DB, fixtures in `tests/`.
+- **Coverage:** > 80% on core modules.
 
-  ### ✅ Validação e tratamento de erros
-  - Todos os erros JWT têm tratamento:
-  - `expired_token_loader`
-  - `invalid_token_loader`
-  - `unauthorized_loader`
-  - `revoked_token_loader`
-  - Retorno estruturado em JSON + log da falha no `app.log`
+<br>
 
-  ### ✅ Padrões RESTful
-  - `POST /auth/login` – autenticação
-  - `POST /auth/refresh` – gera novo access token
-  - `POST /auth/logout` – encerra sessão (revoga refresh)
-  - `GET /auth/me` – valida token atual e retorna infos do usuário da sessão
-
-  ---
-</details>
-
----
-
-> Feito por [Rodrigo Lopes](https://github.com/rodrigofl-dev) — Backend e análise de dados.
+> By: [Rodrigo Lopes](https://github.com/rodrigofl-dev) — Backend developer and Data analyst.

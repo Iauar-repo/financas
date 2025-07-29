@@ -35,8 +35,8 @@ def create_app(config_name='default'):
     from app.auth import auth_bp
     from app.users import users_bp
     
-    app.register_blueprint(auth_bp, url_prefix='/api/auth')
-    app.register_blueprint(users_bp, url_prefix='/api/users')
+    app.register_blueprint(auth_bp, url_prefix='/api/v1/auth')
+    app.register_blueprint(users_bp, url_prefix='/api/v1/users')
     
     #for rule in app.url_map.iter_rules():
     #    print(rule)
