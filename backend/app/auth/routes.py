@@ -77,7 +77,7 @@ def resend_email():
     return response(key, data)
 
 
-# GET  /api/auth/login/google  OAuth2.0 # MOVER PARA O FRONT
+# GET  /api/auth/login/google  OAuth2.0 # This is going to the frontend
 @auth_bp.get("/login/google")
 def login_google():
     redirect_uri = url_for("auth.callback_google", _external=True)
@@ -85,7 +85,7 @@ def login_google():
 
 
 # GET  /api/auth/callback/google  OAuth2.0 Callback
-@auth_bp.get("/callback/google")
+@auth_bp.get("/callback/google") # change to POST after implemented on front
 def callback_google():
     token = oauth.google.authorize_access_token()
     user_info = oauth.google.get("userinfo").json()

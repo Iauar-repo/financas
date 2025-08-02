@@ -71,7 +71,7 @@ def confirm_token(token, expiration=3600):
 
 def send_confirmation_email(user):
     token = generate_confirmation_token(user.email)
-    confirm_url = f"http://localhost:5000/api/auth/confirm/{token}"
+    confirm_url = f"http://localhost:5000/api/v1/auth/confirm/{token}"
     html = f"<p>Olá {user.name}, confirme seu e-mail clicando <a href='{confirm_url}'>aqui</a>.</p>"
 
     msg = Message(subject="Confirme seu e-mail", recipients=[user.email], html=html)

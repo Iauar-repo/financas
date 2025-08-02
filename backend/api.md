@@ -1,13 +1,31 @@
-# 📘 API doc - Financas project
+# Endpoints
+- Authentication
+    - [POST - /auth/login](#post-authlogin)
+    - [POST - /auth/refresh](#post-authrefresh)
+    - [POST - /auth/logout](#post-authlogout)
+    - [GET - /auth/me](#get-authme)
+    - [GET - /auth/confirm/\<token\>](#get-authconfirmtoken)
+    - [POST - /auth/resend](#post-authresend)
+    - [POST - /auth/callback/google](#post-authcallbackgoogle)
+- Users
+    - [GET - /users/](#get-users)
+    - [POST - /users/register](#post-usersregister)
+    - [GET - /users/\<user_id\>](#get-usersid)
+    - [PATCH - /users/<user_id>](#patch-usersid)
+    - [DELETE - /users/<user_id>](#delete-usersid)
 
-### Base API URL: http://127.0.0.1:5000/api/v1
+## Base API URL
 
-<details>
-  <summary>Autenticação</summary>
+Default port: `5000` \
+Current version: `api/v1`
+
+http://127.0.0.1:5000/api/v1
+
+## Authentication
 
 ### POST `/auth/login`
 
-Autentica o usuário com `username` e `password`.
+Authenticate a user with `email` and `password`.
 
 #### Request
 ```json
@@ -27,12 +45,11 @@ Autentica o usuário com `username` e `password`.
     "message": "Operation successful."
 }
 ```
-
 ---
 
-### POST `/api/auth/refresh`
+### POST `/auth/refresh`
 
-Gera novos tokens com base no `refresh_token`.
+Generate new tokens for a `refresh_token`.
 
 #### Headers
 `Authorization: Bearer <refresh_token>`
@@ -40,17 +57,18 @@ Gera novos tokens com base no `refresh_token`.
 #### Response
 ```json
 {
-    "access_token": "xxx",
-    "refresh_token": "yyy",
-    "message": "Novos tokens foram gerados"
+    "data": {
+        "access_token": "xxx",
+        "refresh_token": "yyy"
+    },
+    "message": "Operation successful."
 }
 ```
-
 ---
 
-### POST `/api/auth/logout`
+### POST `/auth/logout`
 
-Revoga o `refresh_token` e encerra a sessão.
+Revoke the `refresh_token` and ends the current session.
 
 #### Headers
 `Authorization: Bearer <refresh_token>`
@@ -58,15 +76,15 @@ Revoga o `refresh_token` e encerra a sessão.
 #### Response
 ```json
 {
-    "message": "Usuário deslogado com sucesso"
+    "message": "Operation successful."
 }
 ```
 
 ---
 
-### GET `/api/auth/me`
+### GET `/auth/me`
 
-Valida o `access_token` e retorna os dados do usuário autenticado.
+Validate the `access_token` and returns user ID.
 
 #### Headers
 `Authorization: Bearer <access_token>`
@@ -74,25 +92,27 @@ Valida o `access_token` e retorna os dados do usuário autenticado.
 #### Response
 ```json
 {
-    "id": 1,
-    "message": "Autenticado"
+    "data": {
+        "id": 1
+    },
+    "message": "Operation successful."
 }
 ```
 ---
 
-### GET `/api/auth/confirm/<token>`
+### GET `/auth/confirm/<token>`
 
-Valida o token de confirmação de email.
+Validate email token.
 
 #### Response
 
-Retorna página HTML **email_confirmado.html** ou **email_error.html**
+Returns a HTML page **email_confirmed.html** or **email_error.html**
 
 ---
 
-### POST `/api/auth/resend`
+### POST `/auth/resend`
 
-Reenvia token de verificação de email.
+Resend email verification token.
 
 #### Request
 ```json
@@ -103,18 +123,63 @@ Reenvia token de verificação de email.
 #### Response
 ```json
 {
-    "message": "Email de confirmação foi reenviado"
+    "message": "Operation successful."
 }
 ```
 ---
-</details>
 
-<details>
-  <summary>Usuários</summary>
+### POST `/auth/callback/google`
 
-### POST `/api/users/register`
+Callback for Google authentication.
 
-Cria um novo usuário.
+#### Request
+```json
+{
+    "W.I.P"
+}
+```
+#### Response
+```json
+{
+    "W.I.P"
+}
+```
+---
+
+## Users
+
+### GET `/users`
+
+List all users (Admin only).
+
+#### Headers
+`Authorization: Bearer <access_token>`
+
+#### Response
+```json
+{
+    "data": [
+        {
+            "created_at": "2025-07-14T05:48:03",
+            "email": "mail@domain.com",
+            "id": 1,
+            "name": "Real Name"
+        },
+        {
+            "created_at": "2025-07-14T05:48:04",
+            "email": "mail@domain.com",
+            "id": 2,
+            "name": "Real Name"
+        }
+    ],
+    "message": "Operation successful."
+}
+```
+---
+
+### POST `/users/register`
+
+Register a new user.
 
 #### Headers
 `Authorization: Bearer <access_token>`
@@ -141,37 +206,10 @@ Cria um novo usuário.
 }
 ```
 ---
-### GET `/api/users`
 
-Lista todos os usuários (Admin only).
+### GET `/users/<id>`
 
-#### Headers
-`Authorization: Bearer <access_token>`
-
-#### Response
-```json
-{
-    "data": [
-        {
-            "created_at": "2025-07-14T05:48:03",
-            "email": "mail@domain.com",
-            "id": 1,
-            "name": "Real Name"
-        },
-        {
-            "created_at": "2025-07-14T05:48:04",
-            "email": "mail@domain.com",
-            "id": 2,
-            "name": "Real Name"
-        }
-    ],
-    "message": "Operation successful."
-}
-```
----
-### GET `/api/users/<id>`
-
-Lista um usuário específico (Admin or Owner only).
+List a user (Admin or Owner only).
 
 #### Headers
 `Authorization: Bearer <access_token>`
@@ -189,9 +227,9 @@ Lista um usuário específico (Admin or Owner only).
 }
 ```
 ---
-### PATCH `/api/users/<id>`
+### PATCH `/users/<id>`
 
-Atualiza dados do usuário especificado (Admin or Owner only).
+Update individual attributes of a user (Admin or Owner only).
 
 #### Headers
 `Authorization: Bearer <access_token>`
@@ -199,7 +237,7 @@ Atualiza dados do usuário especificado (Admin or Owner only).
 #### Request
 ```json
 {
-  "name": "Novo Nome"
+  "name": "New name"
 }
 ```
 #### Response
@@ -209,15 +247,15 @@ Atualiza dados do usuário especificado (Admin or Owner only).
             "created_at": "2025-07-14T05:48:04",
             "email": "mail@domain.com",
             "id": 1,
-            "name": "Novo Nome"
+            "name": "New name"
     },
     "message": "Operation successful."
 }
 ```
 ---
-### DELETE `/api/users/<id>`
+### DELETE `/users/<id>`
 
-Remove o usuário especificado (Admin only).
+Deletes user (Admin only).
 
 #### Headers
 `Authorization: Bearer <access_token>`
@@ -229,4 +267,3 @@ Remove o usuário especificado (Admin only).
 }
 ```
 ---
-</details>
