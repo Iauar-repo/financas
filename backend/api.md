@@ -1,17 +1,18 @@
-# 📘 Documentação da API - Projeto Finanças
+# 📘 API doc - Financas project
 
-Detalhamento dos endpoints
+### Base API URL: http://127.0.0.1:5000/api/v1
+
 <details>
   <summary>Autenticação</summary>
 
-### POST `/api/auth/login`
+### POST `/auth/login`
 
 Autentica o usuário com `username` e `password`.
 
 #### Request
 ```json
 {
-    "username": "username",
+    "email": "email@email.com",
     "password": "123"
 }
 ```
@@ -19,9 +20,11 @@ Autentica o usuário com `username` e `password`.
 #### Response
 ```json
 {
-    "access_token": "xxx",
-    "refresh_token": "yyy",
-    "message": "Usuário logado com sucesso"
+    "data": {
+        "access_token": "xxx",
+        "refresh_token": "yyy"
+    },
+    "message": "Operation successful."
 }
 ```
 

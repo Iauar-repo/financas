@@ -1,8 +1,11 @@
-from marshmallow import Schema, fields, validate, pre_load
+from marshmallow import Schema, fields, pre_load, validate
+
 
 class LoginSchema(Schema):
     email = fields.Email(required=True, load_only=True, validate=validate.Length(min=1))
-    password = fields.Str(required=True, load_only=True, validate=validate.Length(min=8))
+    password = fields.Str(
+        required=True, load_only=True, validate=validate.Length(min=8)
+    )
 
 
 class CreateUserSocialSchema(Schema):

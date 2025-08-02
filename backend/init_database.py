@@ -1,19 +1,16 @@
-import mysql.connector
-from mysql.connector import errorcode
-from flask_bcrypt import generate_password_hash
 from datetime import datetime, timezone
 
+import mysql.connector
+from flask_bcrypt import generate_password_hash
+from mysql.connector import errorcode
+
 try:
-      conn = mysql.connector.connect(
-            host='127.0.0.1',
-            user='root',
-            password='admin'
-      )
+    conn = mysql.connector.connect(host="127.0.0.1", user="root", password="admin")
 except mysql.connector.Error as err:
-      if err.errno == errorcode.ER_ACCESS_DENIED_ERROR:
-            print('User or password is wrong!')
-      else:
-            print(err)
+    if err.errno == errorcode.ER_ACCESS_DENIED_ERROR:
+        print("User or password is wrong!")
+    else:
+        print(err)
 
 cursor = conn.cursor()
 
@@ -24,14 +21,17 @@ cursor.execute("USE `financas`;")
 cursor.execute("DROP USER IF EXISTS `financas`@`localhost`;")
 cursor.execute("FLUSH PRIVILEGES;")
 cursor.execute("CREATE USER `financas`@`localhost` IDENTIFIED BY 'fin123';")
-cursor.execute("GRANT CREATE, ALTER, DROP, INSERT, UPDATE, DELETE, SELECT on financas.* TO `financas`@`localhost` WITH GRANT OPTION;")
+cursor.execute(
+    "GRANT CREATE, ALTER, DROP, INSERT, UPDATE, DELETE, SELECT on financas.* TO `financas`@`localhost` WITH GRANT OPTION;"
+)
 cursor.execute("FLUSH PRIVILEGES;")
 
 
 # tables
 TABLES = {}
 
-TABLES['Users'] = ('''
+TABLES["Users"] = (
+    """
       CREATE TABLE `users` (
       `id` int NOT NULL AUTO_INCREMENT,
       `name` varchar(100) NOT NULL,
@@ -41,9 +41,11 @@ TABLES['Users'] = ('''
       `created_at` DATETIME NOT NULL,
       PRIMARY KEY (`id`),
       UNIQUE (`email`)
-      ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;''')
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;"""
+)
 
-TABLES['AuthProvider'] = ('''
+TABLES["AuthProvider"] = (
+    """
       CREATE TABLE `authproviders` (
       `id` int NOT NULL AUTO_INCREMENT,
       `user_id` INT NOT NULL,
@@ -54,9 +56,11 @@ TABLES['AuthProvider'] = ('''
       UNIQUE (`provider_user_id`),
       PRIMARY KEY (`id`),
       FOREIGN KEY (`user_id`) REFERENCES users(`id`) ON DELETE CASCADE
-      ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;''')
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;"""
+)
 
-TABLES['ActiveSessions'] = ('''
+TABLES["ActiveSessions"] = (
+    """
 CREATE TABLE `activesessions` (
       `jti` VARCHAR(36) NOT NULL,
       `user_id` INT NOT NULL,
@@ -65,9 +69,11 @@ CREATE TABLE `activesessions` (
       `expires_at` DATETIME NOT NULL,
       PRIMARY KEY (`jti`),
       FOREIGN KEY (`user_id`) REFERENCES users(`id`) ON DELETE CASCADE
-      ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;''')
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;"""
+)
 
-TABLES['TokenBlocklist'] = ('''
+TABLES["TokenBlocklist"] = (
+    """
 CREATE TABLE `tokenblocklist` (
       `jti` VARCHAR(36) NOT NULL,
       `user_id` INT NOT NULL,
@@ -77,20 +83,21 @@ CREATE TABLE `tokenblocklist` (
       `revoked_at` DATETIME NOT NULL,
       PRIMARY KEY (`jti`),
       FOREIGN KEY (`user_id`) REFERENCES users(`id`) ON DELETE CASCADE
-      ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;''')
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;"""
+)
 
 for TBname in TABLES:
-      TBquery = TABLES[TBname]
-      try:
-            print(f'Creating table {TBname}')
-            cursor.execute(TBquery)
-      except mysql.connector.Error as err:
-            if err.errno == errorcode.ER_TABLE_EXISTS_ERROR:
-                  print('Table already exists.')
-            else:
-                  print(err.msg)
-      else:
-            print('OK\n')
+    TBquery = TABLES[TBname]
+    try:
+        print(f"Creating table {TBname}")
+        cursor.execute(TBquery)
+    except mysql.connector.Error as err:
+        if err.errno == errorcode.ER_TABLE_EXISTS_ERROR:
+            print("Table already exists.")
+        else:
+            print(err.msg)
+    else:
+        print("OK\n")
 
 
 # inserting users
@@ -121,8 +128,8 @@ USERvalues = [
 cursor.executemany(USERquery, USERvalues)
 """
 
-cursor.execute('select * from financas.users')
-print(' -------------  Users List:  -------------')
+cursor.execute("select * from financas.users")
+print(" -------------  Users List:  -------------")
 for user in cursor.fetchall():
     print(user[1])
 

@@ -1,5 +1,6 @@
 from marshmallow import Schema, fields, pre_load, validate
 
+
 class ListUserSchema(Schema):
     id = fields.Int()
     name = fields.Str()
@@ -10,8 +11,12 @@ class ListUserSchema(Schema):
 class CreateUserSchema(Schema):
     name = fields.Str(required=True, validate=validate.Length(min=1))
     email = fields.Email(required=True, validate=validate.Length(min=1))
-    password = fields.Str(required=True, load_only=True, validate=validate.Length(min=8))
-    recaptcha_token = fields.Str(required=True, load_only=True, validate=validate.Length(min=1))
+    password = fields.Str(
+        required=True, load_only=True, validate=validate.Length(min=8)
+    )
+    recaptcha_token = fields.Str(
+        required=True, load_only=True, validate=validate.Length(min=1)
+    )
 
     @pre_load
     def normalize_input(self, data, **kwargs):

@@ -1,5 +1,6 @@
 from app.core.responses import response
 
+
 def register_jwt_callbacks(jwt, app):
     @jwt.expired_token_loader
     def expired_token_callback(jwt_header, jwt_payload):
