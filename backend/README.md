@@ -8,6 +8,11 @@ A clean, secure API that lets users record incomes and expenses, manage profiles
 <details>
   <summary>⚙️ How to run</summary>
 
+<br>
+  I recommend using a python virtual environment.
+  
+<br>
+
 1. **Clone and install**
 
     ```bash 
@@ -87,7 +92,7 @@ app/
 - Passwords hashed with Bcrypt.
 - OAuth2 integration for Google login.
 - Rate‑limiting on sensitive endpoints backed by Redis.
-- Referential cascade deletes on user removal (SQLAlchemy + DB‑level).
+- Referential cascade deletes on user removal.
 
 # ✅ Testing
 
