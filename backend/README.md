@@ -29,8 +29,11 @@ A clean, secure API that lets users record incomes and expenses, manage profiles
 
 3. **Database setup**
     ```bash
+    python .\db\create_database.py
+    flask db init
+    flask db migrate -m "init"
     flask db upgrade
-    python init_database.py
+    py -m db.seed
     ```
 
 4. **Run**

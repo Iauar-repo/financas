@@ -5,6 +5,7 @@ from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 from flask_mail import Mail
 from flask_sqlalchemy import SQLAlchemy
+from flask_migrate    import Migrate
 
 # from redis import Redis # uncomment for deploy
 # import os # uncomment for deploy
@@ -19,3 +20,4 @@ limiter = Limiter(
 )
 mail = Mail()
 oauth = OAuth()
+migrate = Migrate()

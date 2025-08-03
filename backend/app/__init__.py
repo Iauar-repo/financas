@@ -3,7 +3,7 @@ from werkzeug.exceptions import HTTPException
 
 from .config import config_dict
 from .core.responses import response
-from .extensions import cors, db, jwt, limiter, mail, oauth
+from .extensions import cors, db, jwt, limiter, mail, oauth, migrate
 from .logger import setup_logger
 
 
@@ -22,6 +22,7 @@ def create_app(config_name="default"):
     limiter.init_app(app)
     mail.init_app(app)
     oauth.init_app(app)
+    migrate.init_app(app, db)
 
     oauth.register(
         name="google",
